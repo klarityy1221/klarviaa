@@ -1,12 +1,11 @@
-import React from 'react';
-import { ArrowRight, Play, Heart, Shield, Eye, Brain } from 'lucide-react';
 
 interface LandingPageProps {
-  onEnterPlatform: () => void;
-  setCurrentView: (view: 'landing' | 'user' | 'admin') => void;
+  setCurrentView: (view: 'landing' | 'user' | 'admin' | 'auth') => void;
 }
 
-export default function LandingPage({ onEnterPlatform, setCurrentView }: LandingPageProps) {
+import { Brain, Heart } from 'lucide-react';
+
+const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
   return (
     <div className="min-h-screen bg-white font-body">
       {/* Header */}
@@ -25,20 +24,26 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
               <a href="#pricing" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">Pricing</a>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">
-                Sign In
+              <button className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium" onClick={() => setCurrentView('auth')}>
+                Login / Register
+                <button
+                  onClick={() => setCurrentView('auth')}
+                  className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
+                >
+                  Start Free Session
+                </button>
               </button>
               <button 
-                onClick={onEnterPlatform}
-                className="btn-primary text-white px-6 py-3 rounded-xl font-heading font-semibold"
+                onClick={() => setCurrentView('auth')}
+                className="bg-gray-200 text-gray-900 px-6 py-3 rounded-xl font-heading font-semibold border border-gray-300 hover:bg-gray-300"
+                aria-label="Admin Login"
               >
-                Start Free Session
+                Admin Login
               </button>
             </div>
           </div>
         </nav>
       </header>
-
       {/* Hero Section */}
       <section className="pt-20 pb-32 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -55,7 +60,7 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
 
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <button
-                  onClick={onEnterPlatform}
+                  onClick={() => setCurrentView('auth')}
                   className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
                 >
                   Start Free Session
@@ -266,4 +271,6 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
       </footer>
     </div>
   );
-}
+};
+
+export default LandingPage;
