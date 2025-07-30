@@ -1,23 +1,31 @@
 
-import React, { useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import AudioPlayerPage from './components/AudioPlayerPage';
 import LandingPage from './components/LandingPage';
 import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import Auth from './components/Auth';
 import { User, Shield, Brain } from 'lucide-react';
 
-function App() {
-  // userType: 'user' | 'admin' | null
-  const [currentView, setCurrentView] = useState<'landing' | 'user' | 'admin' | 'auth'>('landing');
-  const [userType, setUserType] = useState<'user' | 'admin' | null>(null);
 
-  // Pass setUserType to Auth so it can set user type after login
-  if (currentView === 'auth') {
-    return <Auth setCurrentView={setCurrentView} setUserType={setUserType} />;
-  }
-  if (currentView === 'landing') {
-    return <LandingPage setCurrentView={setCurrentView} />;
-  }
+function AppRoutes() {
+  const [userType, setUserTypeState] = useState<'user' | 'admin' | null>(() => {
+    return (localStorage.getItem('userType') as any) || null;
+  });
+  const navigate = useNavigate();
+
+  // Custom setter to update both state and localStorage
+  const setUserType = (type: 'user' | 'admin' | null) => {
+    setUserTypeState(type);
+    if (type) {
+      localStorage.setItem('userType', type);
+    } else {
+      localStorage.removeItem('userType');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       {/* Navigation Header */}
@@ -26,7 +34,7 @@ function App() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setCurrentView('landing')}
+                onClick={() => navigate('/')}
                 className="flex items-center text-2xl font-bold text-white hover:text-klarvia-blue transition-colors"
               >
                 <div className="w-8 h-8 bg-klarvia-blue rounded-lg flex items-center justify-center mr-2">
@@ -39,9 +47,9 @@ function App() {
               {/* Only show Dashboard button for user */}
               {userType === 'user' && (
                 <button
-                  onClick={() => setCurrentView('user')}
+                  onClick={() => navigate('/user')}
                   className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                    currentView === 'user'
+                    window.location.pathname === '/user'
                       ? 'bg-blue-600 text-white border border-blue-500'
                       : 'text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-600'
                   }`}
@@ -53,9 +61,9 @@ function App() {
               {/* Only show Admin button for admin */}
               {userType === 'admin' && (
                 <button
-                  onClick={() => setCurrentView('admin')}
+                  onClick={() => navigate('/admin')}
                   className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors ${
-                    currentView === 'admin'
+                    window.location.pathname === '/admin'
                       ? 'bg-purple-600 text-white border border-purple-500'
                       : 'text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-600'
                   }`}
@@ -65,7 +73,10 @@ function App() {
                 </button>
               )}
               <button
-                onClick={() => setCurrentView('auth')}
+                onClick={() => {
+                  setUserType(null);
+                  navigate('/login');
+                }}
                 className="flex items-center px-4 py-2 rounded-lg font-medium text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-600"
               >
                 Login/Register
@@ -75,13 +86,30 @@ function App() {
         </div>
       </nav>
 
-      {/* Dashboard Content: Only allow correct type to view dashboard */}
-      {currentView === 'user' && userType === 'user' && <UserDashboard />}
-      {currentView === 'admin' && userType === 'admin' && <AdminDashboard />}
-      {/* If user tries to access a dashboard they shouldn't, show landing page */}
-      {(currentView === 'user' && userType !== 'user') && <LandingPage setCurrentView={setCurrentView} />}
-      {(currentView === 'admin' && userType !== 'admin') && <LandingPage setCurrentView={setCurrentView} />}
+      <Routes>
+        <Route path="/" element={<LandingPage setCurrentView={(view) => {
+          if (view === 'auth') navigate('/login');
+          else if (view === 'user') navigate('/user');
+          else if (view === 'admin') navigate('/admin');
+          else navigate('/');
+        }} />} />
+        <Route path="/login" element={<Auth setUserType={setUserType} />} />
+        <Route path="/user" element={userType === 'user' ? <UserDashboard /> : <Navigate to="/login" />} />
+        <Route path="/admin" element={userType === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
+        <Route path="/audio" element={<AudioPlayerPage />} />
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </div>
+  );
+}
+
+
+function App() {
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
   );
 }
 

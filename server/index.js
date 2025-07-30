@@ -1,3 +1,4 @@
+
 import express from 'express';
 import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
@@ -5,10 +6,15 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
+import apiRoutes from './api.js';
+
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(path.dirname(new URL(import.meta.url).pathname), 'uploads')));
+app.use('/api', apiRoutes);
 
 // Root route
 app.get('/', (req, res) => {

@@ -1,76 +1,223 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  fetchTherapists,
+  fetchExercises,
+  fetchResources,
+  uploadResource,
+  API_BASE_URL
+} from '../api';
 import { Plus, Edit2, Trash2, Users, BookOpen, Activity, MessageCircle, Settings, BarChart3 } from 'lucide-react';
 
-interface Content {
+
+interface Resource {
   id: number;
   title: string;
   type: 'podcast' | 'audiobook' | 'course';
-  status: 'active' | 'archived';
+  duration: string;
+  category: string;
 }
 
-interface Psychologist {
+interface Therapist {
   id: number;
   name: string;
   specialization: string;
   availability: string;
+  rating: number;
+  image: string;
 }
 
 interface Exercise {
   id: number;
   title: string;
+  duration: string;
   description: string;
+  tag: string;
+  tagColor: string;
 }
 
-export default function AdminDashboard() {
+function AdminDashboard() {
   const [showContentModal, setShowContentModal] = useState(false);
   const [showPsychologistModal, setShowPsychologistModal] = useState(false);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
-  const [editingContent, setEditingContent] = useState<Content | null>(null);
-  const [editingPsychologist, setEditingPsychologist] = useState<Psychologist | null>(null);
+  const [editingContent, setEditingContent] = useState<Resource | null>(null);
+  const [editingPsychologist, setEditingPsychologist] = useState<Therapist | null>(null);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
-  const [contentList, setContentList] = useState<Content[]>([
-    { id: 1, title: "Mindfulness Meditation Basics", type: "podcast", status: "active" },
-    { id: 2, title: "Anxiety Management Techniques", type: "audiobook", status: "active" },
-    { id: 3, title: "Introduction to CBT", type: "course", status: "active" },
-    { id: 4, title: "Sleep Better Tonight", type: "podcast", status: "archived" },
-  ]);
+  const [contentList, setContentList] = useState<Resource[]>([]);
+  const [psychologistList, setPsychologistList] = useState<Therapist[]>([]);
+  const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
 
-  const [psychologistList, setPsychologistList] = useState<Psychologist[]>([
-    { id: 1, name: "Dr. Sarah Johnson", specialization: "Anxiety & Depression", availability: "Mon-Fri 9AM-5PM" },
-    { id: 2, name: "Dr. Michael Chen", specialization: "Trauma Therapy", availability: "Tue-Thu 10AM-6PM" },
-    { id: 3, name: "Dr. Emily Rodriguez", specialization: "Cognitive Behavioral Therapy", availability: "Mon-Wed 8AM-4PM" },
-  ]);
+  // Fetch all data on mount
+  useEffect(() => {
+    fetchTherapists().then(setPsychologistList);
+    fetchExercises().then(setExerciseList);
+    fetchResources().then(setContentList);
+  }, []);
 
-  const [exerciseList, setExerciseList] = useState<Exercise[]>([
-    { id: 1, title: "Box Breathing", description: "A simple breathing technique to help reduce stress and anxiety." },
-    { id: 2, title: "5-4-3-2-1 Grounding", description: "Use your senses to ground yourself and reduce anxiety." },
-    { id: 3, title: "Progressive Muscle Relaxation", description: "Systematically tense and relax muscle groups." },
-    { id: 4, title: "Mindful Walking", description: "Practice mindfulness while walking slowly and deliberately." },
-  ]);
+  // Modal form state
+  const [resourceForm, setResourceForm] = useState<{
+    title: string;
+    type: 'podcast' | 'audiobook' | 'course';
+    duration: string;
+    category: string;
+  }>({
+    title: '',
+    type: 'podcast',
+    duration: '',
+    category: ''
+  });
+  const [resourceFile, setResourceFile] = useState<File | null>(null);
+  const [resourceUploadError, setResourceUploadError] = useState('');
+  const [therapistForm, setTherapistForm] = useState({
+    name: '',
+    specialization: '',
+    availability: '',
+    rating: 4.5,
+    image: '👩‍⚕️'
+  });
+  const [exerciseForm, setExerciseForm] = useState({
+    title: '',
+    duration: '',
+    description: '',
+    tag: '',
+    tagColor: ''
+  });
 
-  const handleDeleteContent = (id: number) => {
-    setContentList(contentList.filter(item => item.id !== id));
-  };
+  // Populate forms for edit
+  useEffect(() => {
+    if (editingContent) {
+      setResourceForm({
+        title: editingContent.title,
+        type: editingContent.type,
+        duration: editingContent.duration,
+        category: editingContent.category
+      });
+      setResourceFile(null);
+    } else {
+      setResourceForm({ title: '', type: 'podcast', duration: '', category: '' });
+      setResourceFile(null);
+    }
+    setResourceUploadError('');
+  }, [editingContent]);
+  useEffect(() => {
+    if (editingPsychologist) {
+      setTherapistForm({
+        name: editingPsychologist.name,
+        specialization: editingPsychologist.specialization,
+        availability: editingPsychologist.availability,
+        rating: editingPsychologist.rating,
+        image: editingPsychologist.image
+      });
+    } else {
+      setTherapistForm({ name: '', specialization: '', availability: '', rating: 4.5, image: '👩‍⚕️' });
+    }
+  }, [editingPsychologist]);
+  useEffect(() => {
+    if (editingExercise) {
+      setExerciseForm({
+        title: editingExercise.title,
+        duration: editingExercise.duration,
+        description: editingExercise.description,
+        tag: editingExercise.tag,
+        tagColor: editingExercise.tagColor
+      });
+    } else {
+      setExerciseForm({ title: '', duration: '', description: '', tag: '', tagColor: '' });
+    }
+  }, [editingExercise]);
 
-  const handleDeletePsychologist = (id: number) => {
-    setPsychologistList(psychologistList.filter(item => item.id !== id));
-  };
+  // CRUD API helpers
+  async function addTherapist(data: Partial<Therapist>) {
+    const res = await fetch(`${API_BASE_URL}/therapists`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) fetchTherapists().then(setPsychologistList);
+  }
+  async function updateTherapist(id: number, data: Partial<Therapist>) {
+    const res = await fetch(`${API_BASE_URL}/therapists/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) fetchTherapists().then(setPsychologistList);
+  }
+  async function deleteTherapist(id: number) {
+    const res = await fetch(`${API_BASE_URL}/therapists/${id}`, { method: 'DELETE' });
+    if (res.ok) fetchTherapists().then(setPsychologistList);
+  }
 
-  const handleDeleteExercise = (id: number) => {
-    setExerciseList(exerciseList.filter(item => item.id !== id));
-  };
+  async function addExercise(data: Partial<Exercise>) {
+    const res = await fetch(`${API_BASE_URL}/exercises`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) fetchExercises().then(setExerciseList);
+  }
+  async function updateExercise(id: number, data: Partial<Exercise>) {
+    const res = await fetch(`${API_BASE_URL}/exercises/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) fetchExercises().then(setExerciseList);
+  }
+  async function deleteExercise(id: number) {
+    const res = await fetch(`${API_BASE_URL}/exercises/${id}`, { method: 'DELETE' });
+    if (res.ok) fetchExercises().then(setExerciseList);
+  }
 
-  const openContentModal = (content?: Content) => {
+  async function addResourceWithFile(data: Partial<Resource>, file: File | null) {
+    if (file) {
+      const formData = new FormData();
+      formData.append('title', data.title || '');
+      formData.append('type', data.type || 'podcast');
+      formData.append('duration', data.duration || '');
+      formData.append('category', data.category || '');
+      formData.append('file', file);
+      try {
+        await uploadResource(formData);
+        fetchResources().then(setContentList);
+      } catch (err: any) {
+        setResourceUploadError(err.message || 'Failed to upload resource');
+      }
+    } else {
+      // fallback to old method if no file
+      const res = await fetch(`${API_BASE_URL}/resources`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) fetchResources().then(setContentList);
+    }
+  }
+  async function updateResource(id: number, data: Partial<Resource>) {
+    const res = await fetch(`${API_BASE_URL}/resources/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) fetchResources().then(setContentList);
+  }
+  async function deleteResource(id: number) {
+    const res = await fetch(`${API_BASE_URL}/resources/${id}`, { method: 'DELETE' });
+    if (res.ok) fetchResources().then(setContentList);
+  }
+
+  const handleDeleteContent = (id: number) => deleteResource(id);
+  const handleDeletePsychologist = (id: number) => deleteTherapist(id);
+  const handleDeleteExercise = (id: number) => deleteExercise(id);
+
+  const openContentModal = (content?: Resource) => {
     setEditingContent(content || null);
     setShowContentModal(true);
   };
-
-  const openPsychologistModal = (psychologist?: Psychologist) => {
+  const openPsychologistModal = (psychologist?: Therapist) => {
     setEditingPsychologist(psychologist || null);
     setShowPsychologistModal(true);
   };
-
   const openExerciseModal = (exercise?: Exercise) => {
     setEditingExercise(exercise || null);
     setShowExerciseModal(true);
@@ -193,41 +340,39 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-700">
-                {contentList.map((content) => (
-                  <tr key={content.id} className="hover:bg-gray-700/50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{content.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        content.type === 'podcast' ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30' :
-                        content.type === 'audiobook' ? 'bg-purple-600/20 text-purple-400 border border-purple-600/30' :
-                        'bg-green-600/20 text-green-400 border border-green-600/30'
-                      }`}>
-                        {content.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        content.status === 'active' ? 'bg-green-600/20 text-green-400 border border-green-600/30' : 'bg-gray-600/20 text-gray-400 border border-gray-600/30'
-                      }`}>
-                        {content.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
-                        onClick={() => openContentModal(content)}
-                        className="text-blue-400 hover:text-blue-300 p-1"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteContent(content.id)}
-                        className="text-red-400 hover:text-red-300 p-1"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+        {contentList.map((content) => (
+          <tr key={content.id} className="hover:bg-gray-700/50">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{content.title}</td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                content.type === 'podcast' ? 'bg-blue-600/20 text-blue-400 border border-blue-600/30' :
+                content.type === 'audiobook' ? 'bg-purple-600/20 text-purple-400 border border-purple-600/30' :
+                'bg-green-600/20 text-green-400 border border-green-600/30'
+              }`}>
+                {content.type}
+              </span>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-600/20 text-green-400 border border-green-600/30">
+                {content.category}
+              </span>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+              <button
+                onClick={() => openContentModal(content)}
+                className="text-blue-400 hover:text-blue-300 p-1"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => handleDeleteContent(content.id)}
+                className="text-red-400 hover:text-red-300 p-1"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </td>
+          </tr>
+        ))}
               </tbody>
             </table>
           </div>
@@ -325,20 +470,42 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-semibold text-white mb-4">
                 {editingContent ? 'Edit Content' : 'Add New Content'}
               </h3>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={async e => {
+                e.preventDefault();
+                if (!resourceForm.title.trim() || !resourceForm.type.trim() || !resourceForm.duration.trim() || !resourceForm.category.trim()) {
+                  alert('Please fill in all required fields.');
+                  return;
+                }
+                if (editingContent) {
+                  await updateResource(editingContent.id, {
+                    ...resourceForm,
+                    type: resourceForm.type as 'podcast' | 'audiobook' | 'course',
+                  });
+                } else {
+                  await addResourceWithFile({
+                    ...resourceForm,
+                    type: resourceForm.type as 'podcast' | 'audiobook' | 'course',
+                  }, resourceFile);
+                }
+                setShowContentModal(false);
+                setEditingContent(null);
+              }}>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
                   <input
                     type="text"
-                    defaultValue={editingContent?.title || ''}
+                    value={resourceForm.title}
+                    onChange={e => setResourceForm(f => ({ ...f, title: e.target.value }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
                     placeholder="Enter content title"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Type</label>
                   <select
-                    defaultValue={editingContent?.type || 'podcast'}
+                    value={resourceForm.type}
+                    onChange={e => setResourceForm(f => ({ ...f, type: e.target.value as 'podcast' | 'audiobook' | 'course' }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white"
                   >
                     <option value="podcast">Podcast</option>
@@ -347,17 +514,39 @@ export default function AdminDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Upload Link</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Duration</label>
                   <input
-                    type="url"
+                    type="text"
+                    value={resourceForm.duration}
+                    onChange={e => setResourceForm(f => ({ ...f, duration: e.target.value }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
-                    placeholder="https://example.com/content"
+                    placeholder="e.g. 45 min"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                  <input
+                    type="text"
+                    value={resourceForm.category}
+                    onChange={e => setResourceForm(f => ({ ...f, category: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="e.g. Mindfulness"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Upload File (image, audio, video)</label>
+                  <input
+                    type="file"
+                    accept="image/*,audio/*,video/*"
+                    onChange={e => setResourceFile(e.target.files?.[0] || null)}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white"
+                  />
+                  {resourceUploadError && <div className="text-red-400 text-xs mt-1">{resourceUploadError}</div>}
                 </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowContentModal(false)}
+                    onClick={() => { setShowContentModal(false); setEditingContent(null); }}
                     className="flex-1 bg-gray-700 text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
                   >
                     Cancel
@@ -381,38 +570,84 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-semibold text-white mb-4">
                 {editingPsychologist ? 'Edit Therapist' : 'Add New Therapist'}
               </h3>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={async e => {
+                e.preventDefault();
+                if (!therapistForm.name.trim() || !therapistForm.specialization.trim() || !therapistForm.availability.trim() || !therapistForm.image.trim()) {
+                  alert('Please fill in all required fields.');
+                  return;
+                }
+                if (therapistForm.image.length > 2) {
+                  alert('Please enter a single emoji for the image.');
+                  return;
+                }
+                if (editingPsychologist) {
+                  await updateTherapist(editingPsychologist.id, therapistForm);
+                } else {
+                  await addTherapist(therapistForm);
+                }
+                setShowPsychologistModal(false);
+                setEditingPsychologist(null);
+              }}>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
                   <input
                     type="text"
-                    defaultValue={editingPsychologist?.name || ''}
+                    value={therapistForm.name}
+                    onChange={e => setTherapistForm(f => ({ ...f, name: e.target.value }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
                     placeholder="Dr. John Doe"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Specialization</label>
                   <input
                     type="text"
-                    defaultValue={editingPsychologist?.specialization || ''}
+                    value={therapistForm.specialization}
+                    onChange={e => setTherapistForm(f => ({ ...f, specialization: e.target.value }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
                     placeholder="Anxiety & Depression"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Schedule</label>
-                  <select className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white">
-                    <option>Mon-Fri 9AM-5PM</option>
-                    <option>Tue-Thu 10AM-6PM</option>
-                    <option>Mon-Wed 8AM-4PM</option>
-                    <option>Weekend only</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Availability</label>
+                  <input
+                    type="text"
+                    value={therapistForm.availability}
+                    onChange={e => setTherapistForm(f => ({ ...f, availability: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="Mon-Fri 9AM-5PM"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Rating</label>
+                  <input
+                    type="number"
+                    value={therapistForm.rating}
+                    onChange={e => setTherapistForm(f => ({ ...f, rating: parseFloat(e.target.value) }))}
+                    min={1}
+                    max={5}
+                    step={0.1}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Image Emoji</label>
+                  <input
+                    type="text"
+                    value={therapistForm.image}
+                    onChange={e => setTherapistForm(f => ({ ...f, image: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="👩‍⚕️"
+                    maxLength={2}
+                    required
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Enter a single emoji (e.g. 👩‍⚕️ or 👨‍⚕️)</p>
                 </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowPsychologistModal(false)}
+                    onClick={() => { setShowPsychologistModal(false); setEditingPsychologist(null); }}
                     className="flex-1 bg-gray-700 text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
                   >
                     Cancel
@@ -436,29 +671,75 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-semibold text-white mb-4">
                 {editingExercise ? 'Edit Exercise' : 'Add New Exercise'}
               </h3>
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={async e => {
+                e.preventDefault();
+                if (!exerciseForm.title.trim() || !exerciseForm.duration.trim() || !exerciseForm.tag.trim() || !exerciseForm.tagColor.trim()) {
+                  alert('Please fill in all required fields.');
+                  return;
+                }
+                if (editingExercise) {
+                  await updateExercise(editingExercise.id, exerciseForm);
+                } else {
+                  await addExercise(exerciseForm);
+                }
+                setShowExerciseModal(false);
+                setEditingExercise(null);
+              }}>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
                   <input
                     type="text"
-                    defaultValue={editingExercise?.title || ''}
+                    value={exerciseForm.title}
+                    onChange={e => setExerciseForm(f => ({ ...f, title: e.target.value }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
                     placeholder="Exercise title"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Duration</label>
+                  <input
+                    type="text"
+                    value={exerciseForm.duration}
+                    onChange={e => setExerciseForm(f => ({ ...f, duration: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="e.g. 5 min"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
                   <textarea
                     rows={4}
-                    defaultValue={editingExercise?.description || ''}
+                    value={exerciseForm.description}
+                    onChange={e => setExerciseForm(f => ({ ...f, description: e.target.value }))}
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
                     placeholder="Describe the exercise instructions..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tag</label>
+                  <input
+                    type="text"
+                    value={exerciseForm.tag}
+                    onChange={e => setExerciseForm(f => ({ ...f, tag: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="e.g. Focus"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Tag Color (CSS class)</label>
+                  <input
+                    type="text"
+                    value={exerciseForm.tagColor}
+                    onChange={e => setExerciseForm(f => ({ ...f, tagColor: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
+                    placeholder="e.g. tag-focus"
                   />
                 </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowExerciseModal(false)}
+                    onClick={() => { setShowExerciseModal(false); setEditingExercise(null); }}
                     className="flex-1 bg-gray-700 text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors border border-gray-600"
                   >
                     Cancel
@@ -478,3 +759,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;

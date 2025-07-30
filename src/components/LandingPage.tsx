@@ -24,16 +24,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
               <a href="#pricing" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">Pricing</a>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium" onClick={() => setCurrentView('auth')}>
+              <button
+                className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium"
+                onClick={() => setCurrentView('auth')}
+              >
                 Login / Register
-                <button
-                  onClick={() => setCurrentView('auth')}
-                  className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
-                >
-                  Start Free Session
-                </button>
               </button>
-              <button 
+              <button
+                onClick={() => setCurrentView('auth')}
+                className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
+              >
+                Start Free Session
+              </button>
+              <button
                 onClick={() => setCurrentView('auth')}
                 className="bg-gray-200 text-gray-900 px-6 py-3 rounded-xl font-heading font-semibold border border-gray-300 hover:bg-gray-300"
                 aria-label="Admin Login"

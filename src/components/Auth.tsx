@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthProps {
-  setCurrentView: (view: 'landing' | 'user' | 'admin' | 'auth') => void;
   setUserType: (type: 'user' | 'admin') => void;
 }
 
-export default function Auth({ setCurrentView, setUserType }: AuthProps) {
+export default function Auth({ setUserType }: AuthProps) {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -28,10 +29,12 @@ export default function Auth({ setCurrentView, setUserType }: AuthProps) {
       if (res.ok) {
         if (data.isAdmin) {
           setUserType('admin');
-          setCurrentView('admin');
+          localStorage.setItem('username', data.name || data.username || 'Admin');
+          navigate('/admin');
         } else {
           setUserType('user');
-          setCurrentView('user');
+          localStorage.setItem('username', data.name || data.username || 'User');
+          navigate('/user');
         }
       } else {
         setError(data.error || 'Authentication failed');
