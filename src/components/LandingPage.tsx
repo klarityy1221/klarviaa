@@ -154,7 +154,7 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
             <div className="order-2 lg:order-1">
               <h2 className="text-3xl lg:text-4xl font-heading font-bold text-gray-900 mb-6">
                 Why Choose Klarvia for Your Team?
-              </h1>
+              </h2>
               
               <p className="text-lg text-gray-600 mb-8 leading-relaxed">
                 Traditional employee assistance programs have limitations. Klarvia provides immediate, stigma-free mental health support that scales with your organization.
