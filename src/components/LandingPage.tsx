@@ -14,10 +14,11 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
         <nav className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mr-3">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-heading font-bold text-gray-900">Klarvia</span>
+              <img 
+                src="/Klarvia Logo-1.png" 
+                alt="Klarvia Logo" 
+                className="h-10 w-auto mr-3"
+              />
             </div>
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">How It Works</a>
@@ -25,14 +26,11 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
               <a href="#pricing" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">Pricing</a>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">
-                Sign In
-              </button>
               <button 
                 onClick={onEnterPlatform}
                 className="btn-primary text-white px-6 py-3 rounded-xl font-heading font-semibold"
               >
-                Start Free Session
+                Get Started
               </button>
             </div>
           </div>
@@ -60,9 +58,12 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
                 >
                   Start Free Session
                 </button>
-                <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors">
+                <a 
+                  href="#how-it-works" 
+                  className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors text-center"
+                >
                   See How it Works
-                </button>
+                </a>
               </div>
             </div>
 
@@ -112,6 +113,42 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
       </section>
 
       {/* Why Klarvia Section */}
+      <section id="how-it-works" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-4xl font-heading font-bold text-gray-900 mb-6">How It Works</h2>
+          <p className="text-xl text-gray-600 mb-16 max-w-3xl mx-auto">
+            Get started with AI-powered mental health support in three simple steps
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-klarvia-blue rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-white font-bold text-xl">1</span>
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-gray-900 mb-4">Sign Up</h3>
+              <p className="text-gray-600">Create your account and complete a brief wellness assessment</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-klarvia-blue rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-white font-bold text-xl">2</span>
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-gray-900 mb-4">Connect</h3>
+              <p className="text-gray-600">Start a session with your AI therapist or book a human therapist</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-klarvia-blue rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-white font-bold text-xl">3</span>
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-gray-900 mb-4">Grow</h3>
+              <p className="text-gray-600">Access personalized exercises and track your mental wellness journey</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
       <section id="features" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
@@ -242,15 +279,116 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-heading font-bold text-gray-900 mb-6">Simple, Transparent Pricing</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Choose the plan that works best for your team's mental wellness needs
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Starter Plan */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-200">
+              <h3 className="text-2xl font-heading font-bold text-gray-900 mb-4">Starter</h3>
+              <div className="text-4xl font-bold text-gray-900 mb-6">
+                $29<span className="text-lg text-gray-500">/month</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  Up to 10 employees
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  24/7 AI therapist access
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  Basic analytics
+                </li>
+              </ul>
+              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                Get Started
+              </button>
+            </div>
+            
+            {/* Professional Plan */}
+            <div className="bg-klarvia-blue rounded-2xl p-8 text-white relative">
+              <div className="absolute top-4 right-4 bg-white text-klarvia-blue px-3 py-1 rounded-full text-sm font-semibold">
+                Popular
+              </div>
+              <h3 className="text-2xl font-heading font-bold mb-4">Professional</h3>
+              <div className="text-4xl font-bold mb-6">
+                $79<span className="text-lg opacity-80">/month</span>
+              </div>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center">
+                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
+                  Up to 50 employees
+                </li>
+                <li className="flex items-center">
+                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
+                  AI + Human therapists
+                </li>
+                <li className="flex items-center">
+                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
+                  Advanced analytics
+                </li>
+                <li className="flex items-center">
+                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
+                  Priority support
+                </li>
+              </ul>
+              <button className="w-full bg-white text-klarvia-blue py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                Get Started
+              </button>
+            </div>
+            
+            {/* Enterprise Plan */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-200">
+              <h3 className="text-2xl font-heading font-bold text-gray-900 mb-4">Enterprise</h3>
+              <div className="text-4xl font-bold text-gray-900 mb-6">
+                Custom
+              </div>
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  Unlimited employees
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  Custom integrations
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  Dedicated support
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
+                  Custom branding
+                </li>
+              </ul>
+              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                Contact Sales
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center mb-6 md:mb-0">
-              <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mr-3">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-heading font-bold text-gray-900">Klarvia</span>
+              <img 
+                src="/Klarvia Logo-1.png" 
+                alt="Klarvia Logo" 
+                className="h-10 w-auto mr-3"
+              />
             </div>
             <div className="flex items-center space-x-8">
               <a href="#" className="text-gray-600 hover:text-klarvia-blue transition-colors">About</a>
@@ -264,6 +402,12 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
           </div>
         </div>
       </footer>
+      
+      <style jsx>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
     </div>
   );
 }

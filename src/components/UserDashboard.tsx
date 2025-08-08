@@ -44,6 +44,19 @@ interface Resource {
 }
 
 export default function UserDashboard() {
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: 'Alex Johnson',
+    email: 'alex@example.com',
+    phone: '+1 (555) 123-4567',
+    emergencyContact: 'Sarah Johnson - +1 (555) 987-6543',
+    preferences: {
+      notifications: true,
+      reminders: true,
+      dataSharing: false
+    }
+  });
+
   const [animatedCounts, setAnimatedCounts] = useState({
     aiSessions: 0,
     exercises: 0,
@@ -210,37 +223,29 @@ export default function UserDashboard() {
 
   return (
     <div className="dashboard-bg font-body">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mr-3">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-heading font-bold text-gray-900">Klarvia</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">A</span>
-                </div>
-                <span className="text-gray-700 font-medium">Alex</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Welcome Section */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
-            Hi Alex 👋 How are you feeling today?
-          </h1>
-          <p className="text-xl text-gray-600 font-body">
-            We're here for you. Start a session or browse tools that help.
-          </p>
+        <div className="mb-12 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
+              Hi {profileData.name.split(' ')[0]} 👋 How are you feeling today?
+            </h1>
+            <p className="text-xl text-gray-600 font-body">
+              We're here for you. Start a session or browse tools that help.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowProfile(true)}
+            className="flex items-center space-x-3 glass-card rounded-xl p-3 hover:shadow-lg transition-all"
+          >
+            <div className="w-12 h-12 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center">
+              <span className="text-white font-semibold">{profileData.name.split(' ').map(n => n[0]).join('')}</span>
+            </div>
+            <div className="text-left">
+              <div className="text-gray-900 font-medium">{profileData.name}</div>
+              <div className="text-gray-500 text-sm">View Profile</div>
+            </div>
+          </button>
         </div>
 
         {/* Stats Cards */}
@@ -385,7 +390,44 @@ export default function UserDashboard() {
           </div>
         </section>
 
-        {/* Book Human Therapist Section */}
+        {/* Quick Exercises Section */}
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-heading font-bold text-gray-900">Quick Exercises</h2>
+            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors">
+              View All
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {exercises.map((exercise) => (
+              <div key={exercise.id} className="glass-card exercise-card rounded-2xl p-6 cursor-pointer">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-lg flex items-center justify-center">
+                      {exercise.tag === 'Focus' && <Zap className="w-5 h-5 text-white" />}
+                      {exercise.tag === 'Anxiety Relief' && <Heart className="w-5 h-5 text-white" />}
+                      {exercise.tag === 'Stress Relief' && <Wind className="w-5 h-5 text-white" />}
+                      {exercise.tag === 'Mindfulness' && <Smile className="w-5 h-5 text-white" />}
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-semibold text-gray-900">{exercise.title}</h3>
+                      <div className="flex items-center text-sm text-gray-500 mt-1">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {exercise.duration}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${exercise.tagColor}`}>
+                    {exercise.tag}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-sm leading-relaxed">{exercise.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Book Human Therapist Section - Moved to more prominent position */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-heading font-bold text-gray-900">Book Human Therapist</h2>
@@ -396,18 +438,10 @@ export default function UserDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {therapists.map((therapist) => (
               <div key={therapist.id} className="glass-card therapist-card rounded-2xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center text-2xl mr-4">
-                    {therapist.image}
-                  </div>
-                  <div>
-                    <h3 className="font-heading font-semibold text-gray-900">{therapist.name}</h3>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <Star className="w-3 h-3 text-yellow-400 mr-1" />
-                      {therapist.rating}
-                    </div>
                   </div>
                 </div>
+                <span className="inline-block px-3 py-1 bg-pastel-blue text-blue-700 rounded-full text-xs font-medium">
+                  {resource.category}
                 <p className="text-sm text-gray-600 mb-3">{therapist.specialization}</p>
                 <p className="text-sm text-green-600 font-medium mb-4">{therapist.availability}</p>
                 <button className="w-full bg-klarvia-blue text-white py-3 rounded-xl font-medium hover:bg-klarvia-blue-dark transition-colors">
@@ -417,36 +451,145 @@ export default function UserDashboard() {
             ))}
           </div>
         </section>
-
-        {/* Learning Resources Section */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-heading font-bold text-gray-900">Learning Resources</h2>
-            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors">
-              View All
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {resources.map((resource) => (
-              <div key={resource.id} className="glass-card resource-card rounded-2xl p-6 cursor-pointer">
-                <div className="w-12 h-12 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mb-4">
-                  {resource.type === 'podcast' && <Headphones className="w-6 h-6 text-white" />}
-                  {resource.type === 'audiobook' && <BookOpen className="w-6 h-6 text-white" />}
-                  {resource.type === 'course' && <Play className="w-6 h-6 text-white" />}
-                </div>
-                <h3 className="font-heading font-semibold text-gray-900 mb-2">{resource.title}</h3>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                  <span className="capitalize">{resource.type}</span>
-                  <span>{resource.duration}</span>
-                </div>
-                <span className="inline-block px-3 py-1 bg-pastel-blue text-blue-700 rounded-full text-xs font-medium">
-                  {resource.category}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-heading font-bold text-gray-900">Profile Settings</h2>
+                <button
+                  onClick={() => setShowProfile(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center mr-6">
+                  <span className="text-white font-bold text-2xl">{profileData.name.split(' ').map(n => n[0]).join('')}</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
+                  <p className="text-gray-600">{profileData.email}</p>
+                  <button className="text-klarvia-blue text-sm font-medium mt-1 hover:text-klarvia-blue-dark transition-colors">
+                    Change Photo
+                  </button>
+                </div>
+              </div>
+              
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input
+                      type="text"
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                    <input
+                      type="text"
+                      value={profileData.emergencyContact}
+                      onChange={(e) => setProfileData({...profileData, emergencyContact: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Preferences</h4>
+                  <div className="space-y-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={profileData.preferences.notifications}
+                        onChange={(e) => setProfileData({
+                          ...profileData,
+                          preferences: {...profileData.preferences, notifications: e.target.checked}
+                        })}
+                        className="rounded border-gray-300 text-klarvia-blue focus:ring-klarvia-blue"
+                      />
+                      <span className="ml-3 text-gray-700">Email notifications</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={profileData.preferences.reminders}
+                        onChange={(e) => setProfileData({
+                          ...profileData,
+                          preferences: {...profileData.preferences, reminders: e.target.checked}
+                        })}
+                        className="rounded border-gray-300 text-klarvia-blue focus:ring-klarvia-blue"
+                      />
+                      <span className="ml-3 text-gray-700">Session reminders</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={profileData.preferences.dataSharing}
+                        onChange={(e) => setProfileData({
+                          ...profileData,
+                          preferences: {...profileData.preferences, dataSharing: e.target.checked}
+                        })}
+                        className="rounded border-gray-300 text-klarvia-blue focus:ring-klarvia-blue"
+                      />
+                      <span className="ml-3 text-gray-700">Share anonymized data for research</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowProfile(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-klarvia-blue text-white py-3 rounded-xl font-semibold hover:bg-klarvia-blue-dark transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
