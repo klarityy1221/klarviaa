@@ -82,6 +82,16 @@ html {
   animation: countUp 0.8s ease-out;
 }
 
+/* Float animation keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
 /* Tag styles */
 .tag-focus {
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
