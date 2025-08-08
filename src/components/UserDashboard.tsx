@@ -438,10 +438,16 @@ export default function UserDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {therapists.map((therapist) => (
               <div key={therapist.id} className="glass-card therapist-card rounded-2xl p-6">
+                <div className="flex items-center mb-4">
+                  <div className="text-4xl mr-4">{therapist.image}</div>
+                  <div>
+                    <h3 className="font-heading font-semibold text-gray-900">{therapist.name}</h3>
+                    <div className="flex items-center mt-1">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-sm text-gray-600 ml-1">{therapist.rating}</span>
+                    </div>
                   </div>
                 </div>
-                <span className="inline-block px-3 py-1 bg-pastel-blue text-blue-700 rounded-full text-xs font-medium">
-                  {resource.category}
                 <p className="text-sm text-gray-600 mb-3">{therapist.specialization}</p>
                 <p className="text-sm text-green-600 font-medium mb-4">{therapist.availability}</p>
                 <button className="w-full bg-klarvia-blue text-white py-3 rounded-xl font-medium hover:bg-klarvia-blue-dark transition-colors">
