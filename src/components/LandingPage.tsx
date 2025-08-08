@@ -23,7 +23,6 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
             <div className="hidden md:flex items-center space-x-8">
               <a href="#how-it-works" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">How It Works</a>
               <a href="#features" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">Features</a>
-              <a href="#pricing" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">Pricing</a>
             </div>
             <div className="flex items-center space-x-4">
               <button 
@@ -274,106 +273,6 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
                   <div className="text-gray-400 text-xs">calm, confidential, Always there</div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold text-gray-900 mb-6">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Choose the plan that works best for your team's mental wellness needs
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Starter Plan */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-200">
-              <h3 className="text-2xl font-heading font-bold text-gray-900 mb-4">Starter</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-6">
-                $29<span className="text-lg text-gray-500">/month</span>
-              </div>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  Up to 10 employees
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  24/7 AI therapist access
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  Basic analytics
-                </li>
-              </ul>
-              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
-                Get Started
-              </button>
-            </div>
-            
-            {/* Professional Plan */}
-            <div className="bg-klarvia-blue rounded-2xl p-8 text-white relative">
-              <div className="absolute top-4 right-4 bg-white text-klarvia-blue px-3 py-1 rounded-full text-sm font-semibold">
-                Popular
-              </div>
-              <h3 className="text-2xl font-heading font-bold mb-4">Professional</h3>
-              <div className="text-4xl font-bold mb-6">
-                $79<span className="text-lg opacity-80">/month</span>
-              </div>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center">
-                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
-                  Up to 50 employees
-                </li>
-                <li className="flex items-center">
-                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
-                  AI + Human therapists
-                </li>
-                <li className="flex items-center">
-                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
-                  Advanced analytics
-                </li>
-                <li className="flex items-center">
-                  <div className="w-5 h-5 bg-white rounded-full mr-3"></div>
-                  Priority support
-                </li>
-              </ul>
-              <button className="w-full bg-white text-klarvia-blue py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
-                Get Started
-              </button>
-            </div>
-            
-            {/* Enterprise Plan */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-200">
-              <h3 className="text-2xl font-heading font-bold text-gray-900 mb-4">Enterprise</h3>
-              <div className="text-4xl font-bold text-gray-900 mb-6">
-                Custom
-              </div>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  Unlimited employees
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  Custom integrations
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  Dedicated support
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <div className="w-5 h-5 bg-green-500 rounded-full mr-3"></div>
-                  Custom branding
-                </li>
-              </ul>
-              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
-                Contact Sales
-              </button>
             </div>
           </div>
         </div>
