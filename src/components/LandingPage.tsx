@@ -37,37 +37,164 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-32 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="max-w-2xl">
-              <h1 className="text-5xl lg:text-6xl font-heading font-bold text-gray-900 mb-6 leading-tight">
-                Bring Mental Wellness to Your Team 
-                <span className="text-klarvia-blue"> Powered by AI Avatars</span>
-              </h1>
-              
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Give your employees 24/7 access to AI-driven support designed by psychologists.
-              </p>
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 overflow-hidden">
+        {/* Floating Elements - Visual Enhancement */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-20 h-20 bg-klarvia-blue/10 rounded-full animate-pulse-slow"></div>
+          <div className="absolute top-40 right-20 w-16 h-16 bg-cyan-200/20 rounded-full animate-bounce-slow"></div>
+          <div className="absolute bottom-40 left-20 w-12 h-12 bg-blue-200/30 rounded-full animate-pulse-slow"></div>
+          <div className="absolute bottom-20 right-40 w-24 h-24 bg-klarvia-blue/5 rounded-full animate-bounce-slow"></div>
+          <div className="absolute top-1/2 left-1/4 w-8 h-8 bg-cyan-300/20 rounded-full animate-pulse-slow"></div>
+          <div className="absolute top-1/3 right-1/3 w-14 h-14 bg-blue-100/40 rounded-full animate-bounce-slow"></div>
+        </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <button
-                  onClick={onEnterPlatform}
-                  className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
-                >
-                  Start Free Session
-                </button>
-                <a 
-                  href="#how-it-works" 
-                  className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors text-center"
-                >
-                  See How it Works
-                </a>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-5xl mx-auto">
+            {/* Company Value Proposition - 10 words or less */}
+            <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-klarvia-blue/20 shadow-lg">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
+              <span className="text-klarvia-blue font-semibold text-sm tracking-wide uppercase">AI-Powered Mental Health Support</span>
+            </div>
+
+            {/* Clear, Concise Headline */}
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold text-gray-900 mb-6 leading-tight">
+              <span className="block">24/7 Mental Wellness</span>
+              <span className="block text-klarvia-blue">For Your Workforce</span>
+            </h1>
+            
+            {/* Supporting Subheadline with Key Benefits */}
+            <p className="text-xl md:text-2xl text-gray-600 mb-4 leading-relaxed max-w-4xl mx-auto">
+              Empower your employees with instant access to AI therapists, human counselors, and personalized mental health resources.
+            </p>
+
+            {/* Target Audience & Key Services */}
+            <div className="flex flex-wrap justify-center gap-6 mb-12 text-gray-700">
+              <div className="flex items-center bg-white/60 backdrop-blur-sm rounded-lg px-4 py-2 border border-gray-200/50">
+                <Heart className="w-5 h-5 text-klarvia-blue mr-2" />
+                <span className="font-medium">Anonymous & Confidential</span>
+              </div>
+              <div className="flex items-center bg-white/60 backdrop-blur-sm rounded-lg px-4 py-2 border border-gray-200/50">
+                <Brain className="w-5 h-5 text-klarvia-blue mr-2" />
+                <span className="font-medium">AI + Human Therapists</span>
+              </div>
+              <div className="flex items-center bg-white/60 backdrop-blur-sm rounded-lg px-4 py-2 border border-gray-200/50">
+                <Shield className="w-5 h-5 text-klarvia-blue mr-2" />
+                <span className="font-medium">Enterprise-Grade Security</span>
               </div>
             </div>
 
-            {/* AI Avatar Visual - Matching Reference */}
-            <div className="relative flex justify-center">
+            {/* Primary Call-to-Action */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+              <button
+                onClick={onEnterPlatform}
+                className="group relative bg-klarvia-blue text-white px-10 py-5 rounded-2xl font-heading font-bold text-lg hover:bg-klarvia-blue-dark transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+              >
+                <span className="relative z-10">Start Free Session Now</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-klarvia-blue to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
+              
+              <a 
+                href="#how-it-works" 
+                className="group flex items-center text-gray-700 font-semibold hover:text-klarvia-blue transition-colors duration-300"
+              >
+                <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                Watch 2-min Demo
+              </a>
+            </div>
+
+            {/* Trust Signals */}
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-gray-200/50 shadow-lg">
+              <p className="text-gray-600 text-sm font-medium mb-6 uppercase tracking-wide">Trusted by Leading Organizations</p>
+              
+              {/* Stats as Trust Signals */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-klarvia-blue mb-1">10K+</div>
+                  <div className="text-gray-600 text-sm">Active Users</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-klarvia-blue mb-1">99.9%</div>
+                  <div className="text-gray-600 text-sm">Uptime</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-klarvia-blue mb-1">4.9★</div>
+                  <div className="text-gray-600 text-sm">User Rating</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-klarvia-blue mb-1">24/7</div>
+                  <div className="text-gray-600 text-sm">Support</div>
+                </div>
+              </div>
+
+              {/* Quick Testimonial */}
+              <div className="mt-8 pt-6 border-t border-gray-200/50">
+                <blockquote className="text-gray-700 italic mb-3">
+                  "Klarvia transformed our employee wellness program. Mental health support is now accessible to everyone on our team."
+                </blockquote>
+                <div className="flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-white font-semibold text-sm">RK</span>
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900 text-sm">Riya Kumar</div>
+                    <div className="text-gray-600 text-xs">HR Director, TechCorp</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Secondary Value Proposition Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1">
+              <h2 className="text-3xl lg:text-4xl font-heading font-bold text-gray-900 mb-6">
+                Why Choose Klarvia for Your Team?
+              </h1>
+              
+              <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                Traditional employee assistance programs have limitations. Klarvia provides immediate, stigma-free mental health support that scales with your organization.
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-klarvia-blue/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                    <Heart className="w-5 h-5 text-klarvia-blue" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Immediate Access</h3>
+                    <p className="text-gray-600">No waiting lists or appointments. Support is available the moment your employees need it.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-klarvia-blue/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                    <Shield className="w-5 h-5 text-klarvia-blue" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Complete Privacy</h3>
+                    <p className="text-gray-600">Anonymous sessions ensure employees feel safe seeking help without workplace stigma.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-klarvia-blue/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                    <Brain className="w-5 h-5 text-klarvia-blue" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Evidence-Based Care</h3>
+                    <p className="text-gray-600">AI trained by licensed psychologists using proven therapeutic techniques.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced AI Avatar Visual */}
+            <div className="order-1 lg:order-2 relative flex justify-center">
               <div className="relative">
                 {/* Avatar Container */}
                 <div className="w-80 h-80 relative">
@@ -99,10 +226,10 @@ export default function LandingPage({ onEnterPlatform, setCurrentView }: Landing
                 </div>
 
                 {/* Emotion Labels */}
-                <div className="absolute top-8 right-4 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div className="absolute top-8 right-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-klarvia-blue/20">
                   <span className="text-sm font-medium text-gray-700">Calm</span>
                 </div>
-                <div className="absolute bottom-32 left-4 bg-white px-3 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div className="absolute bottom-32 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-xl shadow-lg border border-klarvia-blue/20">
                   <span className="text-sm font-medium text-gray-700">Heard</span>
                 </div>
               </div>
