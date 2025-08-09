@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Import modern fonts */
 @import '@fontsource/inter/400.css';
 @import '@fontsource/inter/500.css';
@@ -75,6 +80,16 @@
 
 .counter-animate {
   animation: countUp 0.8s ease-out;
+}
+
+/* Float animation keyframes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 /* Tag styles */

@@ -66,6 +66,7 @@ export default function UserDashboard() {
   const [bookingSuccessBox, setBookingSuccessBox] = useState(false);
   const [bookingErrorBox, setBookingErrorBox] = useState('');
   const username = localStorage.getItem('username') || 'User';
+
   const [animatedCounts, setAnimatedCounts] = useState({
     aiSessions: 0,
     exercises: 0,
@@ -181,6 +182,7 @@ export default function UserDashboard() {
 
   return (
     <div className="dashboard-bg font-body">
+
       {/* Book a Session Box */}
       <div className="max-w-2xl mx-auto mt-8 mb-8">
         <div className="glass-card rounded-2xl p-6 flex flex-col gap-4">
@@ -317,6 +319,7 @@ export default function UserDashboard() {
           )}
         </div>
         {/* Welcome Section */}
+
         <div className="mb-12">
           <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
             Heyy.. 👋 How are you feeling today?
@@ -324,6 +327,7 @@ export default function UserDashboard() {
           <p className="text-xl text-gray-600 font-body">
             We're here for you. Start a session or browse tools that help.
           </p>
+
         </div>
 
         {/* Stats Cards */}
@@ -521,6 +525,7 @@ export default function UserDashboard() {
           </div>
         </section>
 
+
         {/* Book Human Therapist Section (removed, now handled by Book a Session box) */}
 
         {/* Learning Resources Section */}
@@ -580,9 +585,148 @@ export default function UserDashboard() {
                 </div>
               );
             })}
+
           </div>
         </section>
       </div>
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-heading font-bold text-gray-900">Profile Settings</h2>
+                <button
+                  onClick={() => setShowProfile(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center mr-6">
+                  <span className="text-white font-bold text-2xl">{profileData.name.split(' ').map(n => n[0]).join('')}</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
+                  <p className="text-gray-600">{profileData.email}</p>
+                  <button className="text-klarvia-blue text-sm font-medium mt-1 hover:text-klarvia-blue-dark transition-colors">
+                    Change Photo
+                  </button>
+                </div>
+              </div>
+              
+              <form className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input
+                      type="text"
+                      value={profileData.name}
+                      onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={profileData.email}
+                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                    <input
+                      type="tel"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                    <input
+                      type="text"
+                      value={profileData.emergencyContact}
+                      onChange={(e) => setProfileData({...profileData, emergencyContact: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Preferences</h4>
+                  <div className="space-y-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={profileData.preferences.notifications}
+                        onChange={(e) => setProfileData({
+                          ...profileData,
+                          preferences: {...profileData.preferences, notifications: e.target.checked}
+                        })}
+                        className="rounded border-gray-300 text-klarvia-blue focus:ring-klarvia-blue"
+                      />
+                      <span className="ml-3 text-gray-700">Email notifications</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={profileData.preferences.reminders}
+                        onChange={(e) => setProfileData({
+                          ...profileData,
+                          preferences: {...profileData.preferences, reminders: e.target.checked}
+                        })}
+                        className="rounded border-gray-300 text-klarvia-blue focus:ring-klarvia-blue"
+                      />
+                      <span className="ml-3 text-gray-700">Session reminders</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={profileData.preferences.dataSharing}
+                        onChange={(e) => setProfileData({
+                          ...profileData,
+                          preferences: {...profileData.preferences, dataSharing: e.target.checked}
+                        })}
+                        className="rounded border-gray-300 text-klarvia-blue focus:ring-klarvia-blue"
+                      />
+                      <span className="ml-3 text-gray-700">Share anonymized data for research</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowProfile(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-klarvia-blue text-white py-3 rounded-xl font-semibold hover:bg-klarvia-blue-dark transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
