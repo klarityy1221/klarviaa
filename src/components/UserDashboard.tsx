@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchTherapists, fetchExercises, fetchResources, bookTherapistSession, fetchUserSessions } from '../api';
 import { 
   MessageCircle, 
   Activity, 
@@ -6,16 +9,16 @@ import {
   BookOpen, 
   Play, 
   Clock, 
-  Calendar,
+  // Calendar,
   Headphones,
   Brain,
   Heart,
   Zap,
   Wind,
-  Smile,
-  User,
-  Star
+  Smile
 } from 'lucide-react';
+
+// ...existing code...
 
 interface Exercise {
   id: number;
@@ -41,21 +44,28 @@ interface Resource {
   type: 'podcast' | 'audiobook' | 'course';
   duration: string;
   category: string;
+  fileUrl?: string;
 }
 
 export default function UserDashboard() {
-  const [showProfile, setShowProfile] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: 'Alex Johnson',
-    email: 'alex@example.com',
-    phone: '+1 (555) 123-4567',
-    emergencyContact: 'Sarah Johnson - +1 (555) 987-6543',
-    preferences: {
-      notifications: true,
-      reminders: true,
-      dataSharing: false
-    }
-  });
+  const navigate = useNavigate();
+  // Booked sessions state
+  const [sessions, setSessions] = useState<any[]>([]);
+  // Fetch booked sessions for this user
+  useEffect(() => {
+    // For demo, use userId=1. Replace with real user id if available
+    fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
+  }, []);
+
+  // Book session box state
+  const [showBookingBox, setShowBookingBox] = useState(false);
+  const [bookingTherapistId, setBookingTherapistId] = useState('');
+  const [bookingDateBox, setBookingDateBox] = useState('');
+  const [bookingTimeBox, setBookingTimeBox] = useState('');
+  const [bookingLoadingBox, setBookingLoadingBox] = useState(false);
+  const [bookingSuccessBox, setBookingSuccessBox] = useState(false);
+  const [bookingErrorBox, setBookingErrorBox] = useState('');
+  const username = localStorage.getItem('username') || 'User';
 
   const [animatedCounts, setAnimatedCounts] = useState({
     aiSessions: 0,
@@ -63,132 +73,81 @@ export default function UserDashboard() {
     therapistSessions: 0,
     contentViewed: 0
   });
+  const [therapists, setTherapists] = useState<Therapist[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  // ...removed unused booking modal state...
+  // ...existing code...
 
-  const targetCounts = {
-    aiSessions: 24,
-    exercises: 12,
-    therapistSessions: 3,
-    contentViewed: 8
-  };
-
-  // Animate counters on component mount
+  // Fetch real data and animate counters
   useEffect(() => {
-    const duration = 2000; // 2 seconds
-    const steps = 60;
-    const stepDuration = duration / steps;
-
-    const intervals = Object.keys(targetCounts).map(key => {
-      const target = targetCounts[key as keyof typeof targetCounts];
-      const increment = target / steps;
-      let current = 0;
-      let step = 0;
-
-      return setInterval(() => {
-        step++;
-        current = Math.min(Math.round(increment * step), target);
-        setAnimatedCounts(prev => ({ ...prev, [key]: current }));
-        
-        if (step >= steps) {
-          clearInterval(intervals.find(interval => interval === this));
-        }
-      }, stepDuration);
-    });
-
-    return () => intervals.forEach(interval => clearInterval(interval));
+    async function loadData() {
+      try {
+        const [therapistsData, exercisesData, resourcesData] = await Promise.all([
+          fetchTherapists(),
+          fetchExercises(),
+          fetchResources()
+        ]);
+        setTherapists(therapistsData);
+        setExercises(exercisesData);
+        setResources(resourcesData);
+        // Animate counters based on real data
+        const realCounts = {
+          aiSessions: therapistsData.length + exercisesData.length + resourcesData.length, // Example: sum for demo
+          exercises: exercisesData.length,
+          therapistSessions: therapistsData.length,
+          contentViewed: resourcesData.length
+        };
+        const duration = 2000;
+        const steps = 60;
+        const stepDuration = duration / steps;
+        const intervals: number[] = Object.keys(realCounts).map(key => {
+          const target = realCounts[key as keyof typeof realCounts];
+          const increment = target / steps;
+          let current = 0;
+          let step = 0;
+          const interval = window.setInterval(() => {
+            step++;
+            current = Math.min(Math.round(increment * step), target);
+            setAnimatedCounts(prev => ({ ...prev, [key]: current }));
+            if (step >= steps) {
+              clearInterval(interval);
+            }
+          }, stepDuration);
+          return interval;
+        });
+        return () => intervals.forEach(interval => clearInterval(interval));
+      } catch (err: any) {
+        // Optionally handle error
+      }
+    }
+    loadData();
   }, []);
 
-  const exercises: Exercise[] = [
-    {
-      id: 1,
-      title: "Box Breathing",
-      duration: "5 min",
-      description: "Calm your nervous system with structured breathing",
-      tag: "Focus",
-      tagColor: "tag-focus"
-    },
-    {
-      id: 2,
-      title: "5-4-3-2-1 Grounding",
-      duration: "3 min",
-      description: "Ground yourself using your five senses",
-      tag: "Anxiety Relief",
-      tagColor: "tag-anxiety"
-    },
-    {
-      id: 3,
-      title: "Progressive Muscle Relaxation",
-      duration: "15 min",
-      description: "Release physical tension throughout your body",
-      tag: "Stress Relief",
-      tagColor: "tag-stress"
-    },
-    {
-      id: 4,
-      title: "Mindful Walking",
-      duration: "10 min",
-      description: "Practice mindfulness through gentle movement",
-      tag: "Mindfulness",
-      tagColor: "tag-mindfulness"
-    }
-  ];
 
-  const therapists: Therapist[] = [
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      specialization: "Anxiety & Depression",
-      availability: "Available Today",
-      rating: 4.9,
-      image: "👩‍⚕️"
-    },
-    {
-      id: 2,
-      name: "Dr. Michael Chen",
-      specialization: "Trauma Therapy",
-      availability: "Next Available: Tomorrow",
-      rating: 4.8,
-      image: "👨‍⚕️"
-    },
-    {
-      id: 3,
-      name: "Dr. Emily Rodriguez",
-      specialization: "Cognitive Behavioral Therapy",
-      availability: "Available Today",
-      rating: 4.9,
-      image: "👩‍⚕️"
-    }
-  ];
+  // Modal state for exercise
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [timer, setTimer] = useState<number>(0);
+  const [timerActive, setTimerActive] = useState(false);
 
-  const resources: Resource[] = [
-    {
-      id: 1,
-      title: "Mindfulness for Beginners",
-      type: "podcast",
-      duration: "45 min",
-      category: "Mindfulness"
-    },
-    {
-      id: 2,
-      title: "Overcoming Anxiety",
-      type: "audiobook",
-      duration: "3h 20min",
-      category: "Anxiety"
-    },
-    {
-      id: 3,
-      title: "Sleep Better Tonight",
-      type: "course",
-      duration: "2h 15min",
-      category: "Sleep"
-    },
-    {
-      id: 4,
-      title: "Stress Management Techniques",
-      type: "podcast",
-      duration: "30 min",
-      category: "Stress"
+  // Parse duration string like "5 min" or "10 min" to seconds
+  function parseDuration(duration: string): number {
+    const match = duration.match(/(\d+)/);
+    if (!match) return 0;
+    return parseInt(match[1], 10) * 60;
+  }
+
+  useEffect(() => {
+    let interval: number | null = null;
+    if (timerActive && timer > 0) {
+      interval = window.setInterval(() => {
+        setTimer(t => t - 1);
+      }, 1000);
+    } else if (timer === 0 && timerActive) {
+      setTimerActive(false);
     }
-  ];
+    return () => { if (interval) clearInterval(interval); };
+  }, [timerActive, timer]);
 
   const ProgressRing = ({ progress, size = 60, strokeWidth = 4 }: { progress: number, size?: number, strokeWidth?: number }) => {
     const radius = (size - strokeWidth) / 2;
@@ -223,29 +182,152 @@ export default function UserDashboard() {
 
   return (
     <div className="dashboard-bg font-body">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Welcome Section */}
-        <div className="mb-12 flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
-              Hi {profileData.name.split(' ')[0]} 👋 How are you feeling today?
-            </h1>
-            <p className="text-xl text-gray-600 font-body">
-              We're here for you. Start a session or browse tools that help.
-            </p>
+
+      {/* Book a Session Box */}
+      <div className="max-w-2xl mx-auto mt-8 mb-8">
+        <div className="glass-card rounded-2xl p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-heading font-bold text-gray-900">Book a Session</h2>
+            <button
+              className="bg-klarvia-blue text-white px-4 py-2 rounded font-semibold hover:bg-klarvia-blue-dark transition-colors"
+              onClick={() => setShowBookingBox((v) => !v)}
+            >
+              {showBookingBox ? 'Close' : 'Book Now'}
+            </button>
           </div>
-          <button
-            onClick={() => setShowProfile(true)}
-            className="flex items-center space-x-3 glass-card rounded-xl p-3 hover:shadow-lg transition-all"
-          >
-            <div className="w-12 h-12 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold">{profileData.name.split(' ').map(n => n[0]).join('')}</span>
+          {showBookingBox && (
+            <form
+              className="mt-4 flex flex-col gap-3"
+              onSubmit={async e => {
+                e.preventDefault();
+                setBookingLoadingBox(true);
+                setBookingSuccessBox(false);
+                setBookingErrorBox('');
+                try {
+                  if (!bookingTherapistId) throw new Error('Select a therapist');
+                  await bookTherapistSession(
+                    Number(bookingTherapistId),
+                    1, // Replace with real user id if available
+                    bookingDateBox,
+                    bookingTimeBox
+                  );
+                  setBookingSuccessBox(true);
+                  setBookingTherapistId('');
+                  setBookingDateBox('');
+                  setBookingTimeBox('');
+                  // Refresh sessions
+                  fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
+                } catch (err: any) {
+                  setBookingErrorBox(err.message || 'Failed to book session');
+                } finally {
+                  setBookingLoadingBox(false);
+                }
+              }}
+            >
+              <div>
+                <label className="block text-gray-700 mb-1">Therapist</label>
+                <select
+                  className="w-full border rounded px-3 py-2"
+                  value={bookingTherapistId}
+                  onChange={e => setBookingTherapistId(e.target.value)}
+                  required
+                >
+                  <option value="">Select Therapist</option>
+                  {therapists.map(t => (
+                    <option key={t.id} value={t.id}>{t.name} ({t.specialization})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  className="w-full border rounded px-3 py-2"
+                  value={bookingDateBox}
+                  onChange={e => setBookingDateBox(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-1">Time</label>
+                <input
+                  type="time"
+                  className="w-full border rounded px-3 py-2"
+                  value={bookingTimeBox}
+                  onChange={e => setBookingTimeBox(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-klarvia-blue text-white py-2 rounded font-semibold"
+                disabled={bookingLoadingBox}
+              >
+                {bookingLoadingBox ? 'Booking...' : 'Book Session'}
+              </button>
+              {bookingSuccessBox && (
+                <div className="text-green-600 font-bold text-center mt-2">Session booked successfully!</div>
+              )}
+              {bookingErrorBox && (
+                <div className="text-red-600 font-bold text-center mt-2">{bookingErrorBox}</div>
+              )}
+            </form>
+          )}
+        </div>
+      </div>
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mr-3">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-2xl font-heading font-bold text-gray-900">Klarvia</span>
             </div>
-            <div className="text-left">
-              <div className="text-gray-900 font-medium">{profileData.name}</div>
-              <div className="text-gray-500 text-sm">View Profile</div>
+            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center">
+                  <span className="text-white font-semibold text-sm">{username.charAt(0).toUpperCase()}</span>
+                </div>
+                <span className="text-gray-700 font-medium">{username}</span>
+              </div>
             </div>
-          </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Booked Sessions Box */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">Your Booked Sessions</h2>
+          {sessions.length === 0 ? (
+            <div className="text-gray-500">No sessions booked yet.</div>
+          ) : (
+            <ul className="divide-y divide-gray-200 bg-white rounded-xl shadow p-4">
+              {sessions.map(session => (
+                <li key={session.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <span className="font-semibold text-klarvia-blue">Therapist:</span> {therapists.find(t => t.id === session.therapistId)?.name || `ID ${session.therapistId}`}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Date:</span> {session.date} <span className="font-semibold ml-4">Time:</span> {session.time}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {/* Welcome Section */}
+
+        <div className="mb-12">
+          <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
+            Heyy.. 👋 How are you feeling today?
+          </h1>
+          <p className="text-xl text-gray-600 font-body">
+            We're here for you. Start a session or browse tools that help.
+          </p>
+
         </div>
 
         {/* Stats Cards */}
@@ -315,10 +397,16 @@ export default function UserDashboard() {
                   Available 24/7. Trained in real-world techniques. Ready when you are.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <button className="btn-primary text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg">
+                  <button
+                    className="btn-primary text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg"
+                    onClick={() => alert('AI Session started! (Real integration coming soon)')}
+                  >
                     Start Session
                   </button>
-                  <button className="btn-secondary px-8 py-4 rounded-xl font-heading font-semibold text-lg">
+                  <button
+                    className="btn-secondary px-8 py-4 rounded-xl font-heading font-semibold text-lg"
+                    onClick={() => alert('Feature coming soon!')}
+                  >
                     View Past Conversations
                   </button>
                 </div>
@@ -357,13 +445,21 @@ export default function UserDashboard() {
         <section className="mb-12">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-heading font-bold text-gray-900">Quick Exercises</h2>
-            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors">
+            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors" onClick={() => alert('Feature coming soon!')}>
               View All
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {exercises.map((exercise) => (
-              <div key={exercise.id} className="glass-card exercise-card rounded-2xl p-6 cursor-pointer">
+              <div
+                key={exercise.id}
+                className="glass-card exercise-card rounded-2xl p-6 cursor-pointer"
+                onClick={() => {
+                  setSelectedExercise(exercise);
+                  setTimer(parseDuration(exercise.duration));
+                  setTimerActive(false);
+                }}
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-lg flex items-center justify-center">
@@ -387,74 +483,109 @@ export default function UserDashboard() {
                 <p className="text-gray-600 text-sm leading-relaxed">{exercise.description}</p>
               </div>
             ))}
+
+            {/* Exercise Modal */}
+            {selectedExercise && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full relative">
+                  <button
+                    className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+                    onClick={() => setSelectedExercise(null)}
+                  >
+                    ×
+                  </button>
+                  <h2 className="text-2xl font-bold mb-2">{selectedExercise.title}</h2>
+                  <div className="mb-2 text-gray-600">{selectedExercise.description}</div>
+                  <div className="mb-4 flex items-center text-gray-500">
+                    <Clock className="w-5 h-5 mr-2" />
+                    {selectedExercise.duration}
+                  </div>
+                  <div className="mb-6">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${selectedExercise.tagColor}`}>
+                      {selectedExercise.tag}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-center mb-4">
+                    <div className="text-4xl font-mono mb-2">
+                      {Math.floor(timer / 60).toString().padStart(2, '0')}:{(timer % 60).toString().padStart(2, '0')}
+                    </div>
+                    <button
+                      className="bg-klarvia-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-klarvia-blue-dark transition-colors"
+                      onClick={() => setTimerActive(t => !t)}
+                    >
+                      {timerActive ? 'Pause' : (timer === 0 ? 'Restart' : 'Start')}
+                    </button>
+                  </div>
+                  {timer === 0 && (
+                    <div className="text-green-600 font-bold text-center mt-2">Exercise Complete!</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Quick Exercises Section */}
+
+        {/* Book Human Therapist Section (removed, now handled by Book a Session box) */}
+
+        {/* Learning Resources Section */}
         <section className="mb-12">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-heading font-bold text-gray-900">Quick Exercises</h2>
-            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors">
+            <h2 className="text-2xl font-heading font-bold text-gray-900">Learning Resources</h2>
+            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors" onClick={() => alert('Feature coming soon!')}>
               View All
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {exercises.map((exercise) => (
-              <div key={exercise.id} className="glass-card exercise-card rounded-2xl p-6 cursor-pointer">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-lg flex items-center justify-center">
-                      {exercise.tag === 'Focus' && <Zap className="w-5 h-5 text-white" />}
-                      {exercise.tag === 'Anxiety Relief' && <Heart className="w-5 h-5 text-white" />}
-                      {exercise.tag === 'Stress Relief' && <Wind className="w-5 h-5 text-white" />}
-                      {exercise.tag === 'Mindfulness' && <Smile className="w-5 h-5 text-white" />}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {resources.map((resource) => {
+              // Prefer fileUrl if present
+              let url = resource.fileUrl || `/uploads/${encodeURIComponent(resource.title)}.mp3`;
+              return (
+                <div
+                  key={resource.id}
+                  className="glass-card resource-card rounded-2xl p-6 cursor-pointer"
+                  onClick={() => {
+                    if ((resource.type === 'podcast' || resource.type === 'audiobook') && resource.fileUrl) {
+                      navigate('/audio', { state: { resource: { ...resource, url: resource.fileUrl } } });
+                    } else if (resource.type === 'podcast' || resource.type === 'audiobook') {
+                      navigate('/audio', { state: { resource: { ...resource, url } } });
+                    }
+                  }}
+                >
+                  {/* Preview for image, audio, video */}
+                  {resource.fileUrl && resource.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                    <img src={resource.fileUrl} alt={resource.title} className="w-full h-32 object-cover rounded-xl mb-3" />
+                  )}
+                  {resource.fileUrl && resource.fileUrl.match(/\.(mp3|wav|ogg)$/i) && (
+                    <audio controls className="w-full mb-3">
+                      <source src={resource.fileUrl} />
+                    </audio>
+                  )}
+                  {resource.fileUrl && resource.fileUrl.match(/\.(mp4|webm|ogg)$/i) && (
+                    <video controls className="w-full h-32 object-cover rounded-xl mb-3">
+                      <source src={resource.fileUrl} />
+                    </video>
+                  )}
+                  {/* Fallback icon if no preview */}
+                  {!resource.fileUrl && (
+                    <div className="w-12 h-12 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mb-4">
+                      {resource.type === 'podcast' && <Headphones className="w-6 h-6 text-white" />}
+                      {resource.type === 'audiobook' && <BookOpen className="w-6 h-6 text-white" />}
+                      {resource.type === 'course' && <Play className="w-6 h-6 text-white" />}
                     </div>
-                    <div>
-                      <h3 className="font-heading font-semibold text-gray-900">{exercise.title}</h3>
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {exercise.duration}
-                      </div>
-                    </div>
+                  )}
+                  <h3 className="font-heading font-semibold text-gray-900 mb-2">{resource.title}</h3>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                    <span className="capitalize">{resource.type}</span>
+                    <span>{resource.duration}</span>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${exercise.tagColor}`}>
-                    {exercise.tag}
+                  <span className="inline-block px-3 py-1 bg-pastel-blue text-blue-700 rounded-full text-xs font-medium">
+                    {resource.category}
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed">{exercise.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+              );
+            })}
 
-        {/* Book Human Therapist Section - Moved to more prominent position */}
-        <section className="mb-12">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-heading font-bold text-gray-900">Book Human Therapist</h2>
-            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors">
-              View All Therapists
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {therapists.map((therapist) => (
-              <div key={therapist.id} className="glass-card therapist-card rounded-2xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="text-4xl mr-4">{therapist.image}</div>
-                  <div>
-                    <h3 className="font-heading font-semibold text-gray-900">{therapist.name}</h3>
-                    <div className="flex items-center mt-1">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm text-gray-600 ml-1">{therapist.rating}</span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">{therapist.specialization}</p>
-                <p className="text-sm text-green-600 font-medium mb-4">{therapist.availability}</p>
-                <button className="w-full bg-klarvia-blue text-white py-3 rounded-xl font-medium hover:bg-klarvia-blue-dark transition-colors">
-                  Book Session
-                </button>
-              </div>
-            ))}
           </div>
         </section>
       </div>
