@@ -7,7 +7,7 @@ import fs from 'fs';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
-// Get booked sessions for a user
+
 router.get('/sessions', async (req, res) => {
   const db = await getDb();
   const { userId } = req.query;
