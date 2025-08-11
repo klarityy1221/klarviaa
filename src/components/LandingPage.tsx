@@ -1,20 +1,59 @@
+import React from 'react';
+
 interface LandingPageProps {
   setCurrentView: (view: 'landing' | 'user' | 'admin' | 'auth') => void;
 }
-
-// Placeholder for missing ArrowRight icon
-const ArrowRight = ({ className }: { className?: string }) => (
-  <span className={className} style={{display:'inline-block',width:20,height:20}}>&rarr;</span>
-);
-
-// Placeholder for missing onEnterPlatform handler
-const onEnterPlatform = () => {};
 
 const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
   return (
     <div className="min-h-screen bg-white font-body">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 overflow-hidden">
+        {/* Navigation Bar - Fixed at top */}
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex justify-between items-center">
+              {/* Logo */}
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">K</span>
+                </div>
+                <span className="text-2xl font-heading font-bold text-gray-900">Klarvia</span>
+              </div>
+              
+              {/* Navigation Links */}
+              <div className="hidden md:flex items-center space-x-8">
+                <a 
+                  href="#how-it-works" 
+                  className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors duration-200"
+                >
+                  How It Works
+                </a>
+                <a 
+                  href="#features" 
+                  className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors duration-200"
+                >
+                  Features
+                </a>
+                <a 
+                  href="#pricing" 
+                  className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors duration-200"
+                >
+                  Pricing
+                </a>
+              </div>
+              
+              {/* Single Authentication Button */}
+              <button
+                onClick={() => setCurrentView('auth')}
+                className="bg-klarvia-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-klarvia-blue-dark transition-colors duration-200"
+              >
+                Login / Register
+              </button>
+            </div>
+          </div>
+        </nav>
+
         {/* Floating Elements - Visual Enhancement */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-20 h-20 bg-klarvia-blue/10 rounded-full animate-pulse-slow"></div>
@@ -25,7 +64,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
           <div className="absolute top-1/3 right-1/3 w-14 h-14 bg-blue-100/40 rounded-full animate-bounce-slow"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-20 text-center relative z-10">
+        <div className="max-w-7xl mx-auto px-6 py-20 text-center relative z-10 mt-20">
           {/* Value Proposition Badge */}
           <div className="inline-flex items-center bg-klarvia-blue/10 border border-klarvia-blue/20 rounded-full px-6 py-3 mb-8">
             <div className="w-2 h-2 bg-klarvia-blue rounded-full mr-3 animate-pulse"></div>
@@ -77,10 +116,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
               <span className="relative z-10">Start Free Session Now</span>
               <div className="absolute inset-0 bg-gradient-to-r from-klarvia-blue to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>
-            <a href="#how-it-works" className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors">
+            <a 
+              href="#how-it-works" 
+              className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors duration-200"
+            >
               How It Works
             </a>
-            <a href="#features" className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors">
+            <a 
+              href="#features" 
+              className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors duration-200"
+            >
               Watch 2-min Demo
             </a>
           </div>
@@ -88,7 +133,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
           {/* Trust Signals */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto mb-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-klarvia-blue mb-1">10K+</div>
+              <div className="text-3xl font-bold text-klarvia-blue mb-1">15K+</div>
               <div className="text-gray-600 text-sm">Active Users</div>
             </div>
             <div className="text-center">
@@ -130,7 +175,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
             <h2 className="text-3xl lg:text-4xl font-heading font-bold text-gray-900 mb-6">
               Why Choose Klarvia for Your Team?
             </h2>
-
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">
               Traditional employee assistance programs have limitations. Klarvia provides immediate, stigma-free mental health support that scales with your organization.
             </p>
@@ -241,6 +285,99 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
               <p className="text-gray-600 leading-relaxed">
                 Aggregate wellness insights for HR teams to understand trends and measure program effectiveness while protecting individual privacy.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-heading font-bold text-gray-900 mb-6">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Choose the plan that fits your organization's needs. All plans include 24/7 AI support and crisis intervention.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-heading font-bold text-gray-900 mb-4">Starter</h3>
+              <div className="text-3xl font-bold text-klarvia-blue mb-6">$15<span className="text-lg text-gray-600">/employee/month</span></div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  24/7 AI Therapy Sessions
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Basic Wellness Tools
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Crisis Support
+                </li>
+              </ul>
+              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                Get Started
+              </button>
+            </div>
+
+            <div className="bg-klarvia-blue rounded-2xl p-8 text-white relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                Most Popular
+              </div>
+              <h3 className="text-xl font-heading font-bold mb-4">Professional</h3>
+              <div className="text-3xl font-bold mb-6">$35<span className="text-lg opacity-80">/employee/month</span></div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center">
+                  <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Everything in Starter
+                </li>
+                <li className="flex items-center">
+                  <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Human Therapist Sessions
+                </li>
+                <li className="flex items-center">
+                  <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Advanced Analytics
+                </li>
+                <li className="flex items-center">
+                  <span className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Priority Support
+                </li>
+              </ul>
+              <button className="w-full bg-white text-klarvia-blue py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
+                Start Free Trial
+              </button>
+            </div>
+
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-heading font-bold text-gray-900 mb-4">Enterprise</h3>
+              <div className="text-3xl font-bold text-klarvia-blue mb-6">Custom</div>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Everything in Professional
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Custom Integrations
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  Dedicated Account Manager
+                </li>
+                <li className="flex items-center text-gray-600">
+                  <span className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mr-3">✓</span>
+                  On-premise Deployment
+                </li>
+              </ul>
+              <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                Contact Sales
+              </button>
             </div>
           </div>
         </div>

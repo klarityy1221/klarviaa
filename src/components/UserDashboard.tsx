@@ -54,14 +54,6 @@ export default function UserDashboard() {
     fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
   }, []);
 
-  // Book session box state
-  const [showBookingBox, setShowBookingBox] = useState(false);
-  const [bookingTherapistId, setBookingTherapistId] = useState('');
-  const [bookingDateBox, setBookingDateBox] = useState('');
-  const [bookingTimeBox, setBookingTimeBox] = useState('');
-  const [bookingLoadingBox, setBookingLoadingBox] = useState(false);
-  const [bookingSuccessBox, setBookingSuccessBox] = useState(false);
-  const [bookingErrorBox, setBookingErrorBox] = useState('');
   const username = localStorage.getItem('username') || 'User';
 
   const [animatedCounts, setAnimatedCounts] = useState({
@@ -75,6 +67,14 @@ export default function UserDashboard() {
   const [resources, setResources] = useState<Resource[]>([]);
   // Add showProfile state for profile modal
   const [showProfile, setShowProfile] = useState(false);
+  // Book session box state
+  const [showBookingBox, setShowBookingBox] = useState(false);
+  const [bookingTherapistId, setBookingTherapistId] = useState('');
+  const [bookingDateBox, setBookingDateBox] = useState('');
+  const [bookingTimeBox, setBookingTimeBox] = useState('');
+  const [bookingLoadingBox, setBookingLoadingBox] = useState(false);
+  const [bookingSuccessBox, setBookingSuccessBox] = useState(false);
+  const [bookingErrorBox, setBookingErrorBox] = useState('');
   // Add profileData state for profile modal
   const [profileData, setProfileData] = useState({
     name: username,
@@ -192,151 +192,81 @@ export default function UserDashboard() {
   return (
     <div className="dashboard-bg font-body">
 
-      {/* Book a Session Box */}
-      <div className="max-w-2xl mx-auto mt-8 mb-8">
-        <div className="glass-card rounded-2xl p-6 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-heading font-bold text-gray-900">Book a Session</h2>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Welcome Section */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
+              Welcome back, {username}! 👋
+            </h1>
+            <p className="text-xl text-gray-600 font-body">
+              How are you feeling today? We're here to support your mental wellness journey.
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
             <button
-              className="bg-klarvia-blue text-white px-4 py-2 rounded font-semibold hover:bg-klarvia-blue-dark transition-colors"
-              onClick={() => setShowBookingBox((v) => !v)}
+              onClick={() => setShowProfile(true)}
+              className="flex items-center space-x-3 bg-white/80 backdrop-blur-sm rounded-xl p-3 hover:bg-white transition-colors"
             >
-              {showBookingBox ? 'Close' : 'Book Now'}
+              <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-sm">{username.charAt(0).toUpperCase()}</span>
+              </div>
+              <span className="text-gray-700 font-medium">{username}</span>
             </button>
           </div>
-          {showBookingBox && (
-            <form
-              className="mt-4 flex flex-col gap-3"
-              onSubmit={async e => {
-                e.preventDefault();
-                setBookingLoadingBox(true);
-                setBookingSuccessBox(false);
-                setBookingErrorBox('');
-                try {
-                  if (!bookingTherapistId) throw new Error('Select a therapist');
-                  await bookTherapistSession(
-                    Number(bookingTherapistId),
-                    1, // Replace with real user id if available
-                    bookingDateBox,
-                    bookingTimeBox
-                  );
-                  setBookingSuccessBox(true);
-                  setBookingTherapistId('');
-                  setBookingDateBox('');
-                  setBookingTimeBox('');
-                  // Refresh sessions
-                  fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
-                } catch (err: any) {
-                  setBookingErrorBox(err.message || 'Failed to book session');
-                } finally {
-                  setBookingLoadingBox(false);
-                }
-              }}
-            >
-              <div>
-                <label className="block text-gray-700 mb-1">Therapist</label>
-                <select
-                  className="w-full border rounded px-3 py-2"
-                  value={bookingTherapistId}
-                  onChange={e => setBookingTherapistId(e.target.value)}
-                  required
-                >
-                  <option value="">Select Therapist</option>
-                  {therapists.map(t => (
-                    <option key={t.id} value={t.id}>{t.name} ({t.specialization})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Date</label>
-                <input
-                  type="date"
-                  className="w-full border rounded px-3 py-2"
-                  value={bookingDateBox}
-                  onChange={e => setBookingDateBox(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Time</label>
-                <input
-                  type="time"
-                  className="w-full border rounded px-3 py-2"
-                  value={bookingTimeBox}
-                  onChange={e => setBookingTimeBox(e.target.value)}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-klarvia-blue text-white py-2 rounded font-semibold"
-                disabled={bookingLoadingBox}
-              >
-                {bookingLoadingBox ? 'Booking...' : 'Book Session'}
-              </button>
-              {bookingSuccessBox && (
-                <div className="text-green-600 font-bold text-center mt-2">Session booked successfully!</div>
-              )}
-              {bookingErrorBox && (
-                <div className="text-red-600 font-bold text-center mt-2">{bookingErrorBox}</div>
-              )}
-            </form>
-          )}
         </div>
-      </div>
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-xl flex items-center justify-center mr-3">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-2xl font-heading font-bold text-gray-900">Klarvia</span>
-            </div>
-            <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">{username.charAt(0).toUpperCase()}</span>
+        
+        <div className="mb-12">
+          {/* Booked Sessions Box */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">Your Upcoming Sessions</h2>
+            {sessions.length === 0 ? (
+              <div className="glass-card rounded-2xl p-6 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">📅</span>
                 </div>
-                <span className="text-gray-700 font-medium">{username}</span>
+                <p className="text-gray-500 mb-4">No sessions booked yet.</p>
+                <button
+                  onClick={() => setShowBookingBox(true)}
+                  className="bg-klarvia-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-klarvia-blue-dark transition-colors"
+                >
+                  Book Your First Session
+                </button>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                {sessions.map(session => (
+                  <div key={session.id} className="glass-card rounded-2xl p-6">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-klarvia-blue/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl">👨‍⚕️</span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">
+                            {therapists.find(t => t.id === session.therapistId)?.name || `Therapist ID ${session.therapistId}`}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            {therapists.find(t => t.id === session.therapistId)?.specialization || 'Mental Health Professional'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 md:mt-0 text-right">
+                        <p className="font-semibold text-gray-900">{session.date}</p>
+                        <p className="text-gray-600">{session.time}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => setShowBookingBox(true)}
+                  className="w-full glass-card rounded-2xl p-4 text-klarvia-blue font-semibold hover:bg-klarvia-blue/5 transition-colors border-2 border-dashed border-klarvia-blue/30"
+                >
+                  + Book Another Session
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Booked Sessions Box */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-heading font-bold text-gray-900 mb-4">Your Booked Sessions</h2>
-          {sessions.length === 0 ? (
-            <div className="text-gray-500">No sessions booked yet.</div>
-          ) : (
-            <ul className="divide-y divide-gray-200 bg-white rounded-xl shadow p-4">
-              {sessions.map(session => (
-                <li key={session.id} className="py-3 flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <span className="font-semibold text-klarvia-blue">Therapist:</span> {therapists.find(t => t.id === session.therapistId)?.name || `ID ${session.therapistId}`}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Date:</span> {session.date} <span className="font-semibold ml-4">Time:</span> {session.time}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {/* Welcome Section */}
-
-        <div className="mb-12">
-          <h1 className="text-4xl font-heading font-bold text-gray-900 mb-3">
-            Heyy.. 👋 How are you feeling today?
-          </h1>
-          <p className="text-xl text-gray-600 font-body">
-            We're here for you. Start a session or browse tools that help.
-          </p>
-
         </div>
 
         {/* Stats Cards */}
@@ -599,6 +529,138 @@ export default function UserDashboard() {
         </section>
       </div>
 
+      {/* Book a Session Modal */}
+      {showBookingBox && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-heading font-bold text-gray-900">Book a Session</h2>
+                <button
+                  onClick={() => setShowBookingBox(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <form
+                className="space-y-6"
+                onSubmit={async e => {
+                  e.preventDefault();
+                  setBookingLoadingBox(true);
+                  setBookingSuccessBox(false);
+                  setBookingErrorBox('');
+                  try {
+                    if (!bookingTherapistId) throw new Error('Select a therapist');
+                    await bookTherapistSession(
+                      Number(bookingTherapistId),
+                      1, // Replace with real user id if available
+                      bookingDateBox,
+                      bookingTimeBox
+                    );
+                    setBookingSuccessBox(true);
+                    setBookingTherapistId('');
+                    setBookingDateBox('');
+                    setBookingTimeBox('');
+                    // Refresh sessions
+                    fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
+                  } catch (err: any) {
+                    setBookingErrorBox(err.message || 'Failed to book session');
+                  } finally {
+                    setBookingLoadingBox(false);
+                  }
+                }}
+              >
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Therapist</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                    value={bookingTherapistId}
+                    onChange={e => setBookingTherapistId(e.target.value)}
+                    required
+                  >
+                    <option value="">Choose a therapist...</option>
+                    {therapists.map(t => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} - {t.specialization}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                      value={bookingDateBox}
+                      onChange={e => setBookingDateBox(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
+                    <input
+                      type="time"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                      value={bookingTimeBox}
+                      onChange={e => setBookingTimeBox(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+                
+                {bookingSuccessBox && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                      <span className="text-green-800 font-medium">Session booked successfully!</span>
+                    </div>
+                  </div>
+                )}
+                
+                {bookingErrorBox && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white text-xs">!</span>
+                      </div>
+                      <span className="text-red-800 font-medium">{bookingErrorBox}</span>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex space-x-4 pt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowBookingBox(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-klarvia-blue text-white py-3 rounded-xl font-semibold hover:bg-klarvia-blue-dark transition-colors"
+                    disabled={bookingLoadingBox}
+                  >
+                    {bookingLoadingBox ? 'Booking...' : 'Book Session'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Profile Modal */}
       {showProfile && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -619,19 +681,39 @@ export default function UserDashboard() {
             
             <div className="p-6">
               <div className="flex items-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center mr-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-klarvia-blue to-klarvia-blue-dark rounded-full flex items-center justify-center mr-6 relative">
                   <span className="text-white font-bold text-2xl">{profileData.name.split(' ').map(n => n[0]).join('')}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        // Handle image upload here
+                        console.log('Image selected:', file);
+                      }
+                    }}
+                  />
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">{profileData.name}</h3>
                   <p className="text-gray-600">{profileData.email}</p>
-                  <button className="text-klarvia-blue text-sm font-medium mt-1 hover:text-klarvia-blue-dark transition-colors">
+                  <p className="text-klarvia-blue text-sm font-medium mt-1 hover:text-klarvia-blue-dark transition-colors cursor-pointer">
                     Change Photo
-                  </button>
+                  </p>
                 </div>
               </div>
               
-              <form className="space-y-6">
+              <form 
+                className="space-y-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // Handle profile update
+                  console.log('Profile updated:', profileData);
+                  setShowProfile(false);
+                }}
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
@@ -640,6 +722,7 @@ export default function UserDashboard() {
                       value={profileData.name}
                       onChange={(e) => setProfileData({...profileData, name: e.target.value})}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                      required
                     />
                   </div>
                   <div>
@@ -649,6 +732,7 @@ export default function UserDashboard() {
                       value={profileData.email}
                       onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-klarvia-blue focus:border-transparent"
+                      required
                     />
                   </div>
                 </div>
