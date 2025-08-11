@@ -13,33 +13,6 @@ const onEnterPlatform = () => {};
 const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
   return (
     <div className="min-h-screen bg-white font-body">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <nav className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <img 
-                src="/Klarvia Logo-1.png" 
-                alt="Klarvia Logo" 
-                className="h-10 w-auto mr-3"
-              />
-            </div>
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#how-it-works" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">How It Works</a>
-              <a href="#features" className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium">Features</a>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                className="text-gray-600 hover:text-klarvia-blue transition-colors font-medium"
-                onClick={() => setCurrentView('auth')}
-              >
-                Login / Register
-              </button>
-            </div>
-          </div>
-        </nav>
-      </header>
-
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 overflow-hidden">
         {/* Floating Elements - Visual Enhancement */}
