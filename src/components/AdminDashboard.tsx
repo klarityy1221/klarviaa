@@ -978,19 +978,6 @@ function AdminDashboard() {
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Image Emoji</label>
-                  <input
-                    type="text"
-                    value={therapistForm.image}
-                    onChange={e => setTherapistForm(f => ({ ...f, image: e.target.value }))}
-                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
-                    placeholder="👩‍⚕️"
-                    maxLength={2}
-                    required
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Enter a single emoji (e.g. 👩‍⚕️ or 👨‍⚕️)</p>
-                </div>
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
