@@ -27,15 +27,11 @@ export default function Auth({ setUserType }: AuthProps) {
       });
       const data = await res.json();
       if (res.ok) {
-        if (data.isAdmin) {
-          setUserType('admin');
-          localStorage.setItem('username', data.name || data.username || 'Admin');
-          navigate('/admin');
-        } else {
-          setUserType('user');
-          localStorage.setItem('username', data.name || data.username || 'User');
-          navigate('/user');
-        }
+        const type = data.isAdmin ? 'admin' : 'user';
+        setUserType(type);
+        localStorage.setItem('userType', type);
+        localStorage.setItem('username', data.name || data.username || (type === 'admin' ? 'Admin' : 'User'));
+        navigate(type === 'admin' ? '/admin' : '/user');
       } else {
         setError(data.error || 'Authentication failed');
       }
