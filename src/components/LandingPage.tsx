@@ -76,12 +76,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
             >
               <span className="relative z-10">Start Free Session Now</span>
               <div className="absolute inset-0 bg-gradient-to-r from-klarvia-blue to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+            <a href="#how-it-works" className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors">
             </button>
-            <button className="group flex items-center text-gray-700 font-semibold hover:text-klarvia-blue transition-colors duration-300 px-8 py-5 border-2 border-gray-300 rounded-2xl hover:border-klarvia-blue">
-              <span className="mr-2">▶</span>
+            </a>
+            <a href="#features" className="text-gray-700 hover:text-klarvia-blue font-medium transition-colors">
               Watch 2-min Demo
-            </button>
+            </a>
           </div>
 
           {/* Trust Signals */}
