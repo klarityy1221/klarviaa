@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchTherapists, fetchExercises, fetchResources, bookTherapistSession, fetchUserSessions } from '../api';
@@ -17,8 +16,6 @@ import {
   Wind,
   Smile
 } from 'lucide-react';
-
-// ...existing code...
 
 interface Exercise {
   id: number;
@@ -76,8 +73,20 @@ export default function UserDashboard() {
   const [therapists, setTherapists] = useState<Therapist[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
-  // ...removed unused booking modal state...
-  // ...existing code...
+  // Add showProfile state for profile modal
+  const [showProfile, setShowProfile] = useState(false);
+  // Add profileData state for profile modal
+  const [profileData, setProfileData] = useState({
+    name: username,
+    email: '',
+    phone: '',
+    emergencyContact: '',
+    preferences: {
+      notifications: false,
+      reminders: false,
+      dataSharing: false
+    }
+  });
 
   // Fetch real data and animate counters
   useEffect(() => {

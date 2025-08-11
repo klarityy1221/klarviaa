@@ -1,9 +1,14 @@
-
 interface LandingPageProps {
   setCurrentView: (view: 'landing' | 'user' | 'admin' | 'auth') => void;
 }
 
-import { Brain, Heart } from 'lucide-react';
+// Placeholder for missing ArrowRight icon
+const ArrowRight = ({ className }: { className?: string }) => (
+  <span className={className} style={{display:'inline-block',width:20,height:20}}>&rarr;</span>
+);
+
+// Placeholder for missing onEnterPlatform handler
+const onEnterPlatform = () => {};
 
 const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
   return (
@@ -59,43 +64,48 @@ const LandingPage: React.FC<LandingPageProps> = ({ setCurrentView }) => {
           <div className="absolute top-1/3 right-1/3 w-14 h-14 bg-blue-100/40 rounded-full animate-bounce-slow"></div>
         </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <button
-                  onClick={() => setCurrentView('auth')}
-                  className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
-                >
-                  Start Free Session
-                </button>
-                <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors">
-                  See How it Works
-                </button>
+        <div className="flex flex-col sm:flex-row gap-4 mb-12">
+          <button
+            onClick={() => setCurrentView('auth')}
+            className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
+          >
+            Start Free Session
+          </button>
+          <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors">
+            See How it Works
+          </button>
+        </div>
 
-              </div>
-            </div>
-
-            {/* Primary Call-to-Action */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+        {/* Primary Call-to-Action */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+          <button
+            onClick={onEnterPlatform}
+            className="group relative bg-klarvia-blue text-white px-10 py-5 rounded-2xl font-heading font-bold text-lg hover:bg-klarvia-blue-dark transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+          >
+            <span className="relative z-10">Start Free Session Now</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-klarvia-blue to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+          </button>
+          <a 
+            href="#how-it-works" 
+            className="group flex items-center text-gray-700 font-semibold hover:text-klarvia-blue transition-colors duration-300"
+          >
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <button
-                onClick={onEnterPlatform}
-                className="group relative bg-klarvia-blue text-white px-10 py-5 rounded-2xl font-heading font-bold text-lg hover:bg-klarvia-blue-dark transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl"
+                onClick={() => setCurrentView('auth')}
+                className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
               >
-                <span className="relative z-10">Start Free Session Now</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-klarvia-blue to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                Start Free Session
               </button>
-              
-              <a 
-                href="#how-it-works" 
-                className="group flex items-center text-gray-700 font-semibold hover:text-klarvia-blue transition-colors duration-300"
-              >
-                              <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                                <button
-                                  onClick={() => setCurrentView('auth')}
-                                  className="bg-klarvia-blue text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:bg-klarvia-blue-dark transition-colors"
-                                >
-                                  Start Free Session
-                                </button>
-                                <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors">
-                                  See How it Works
-                                </button>
-                              </div>
+              <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-heading font-semibold text-lg hover:border-gray-400 transition-colors">
+                See How it Works
+              </button>
+            </div>
+          </a>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default LandingPage;
