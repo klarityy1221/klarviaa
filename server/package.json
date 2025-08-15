@@ -4,13 +4,19 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "migrate": "node migrateSqliteToPostgres.js",
+    "test:api": "node testApi.js",
+    "test:full": "node fullTest.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "multer": "^2.0.2",
     "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "pg": "^8.16.3",
+  "dotenv": "^17.2.1",
+  "node-fetch": "^3.3.2"
   }
 }

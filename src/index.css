@@ -1,12 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Smooth scrolling for anchor links */
-html {
-  scroll-behavior: smooth;
-}
-
 /* Import modern fonts */
 @import '@fontsource/inter/400.css';
 @import '@fontsource/inter/500.css';
@@ -16,6 +7,15 @@ html {
 @import '@fontsource/plus-jakarta-sans/500.css';
 @import '@fontsource/plus-jakarta-sans/600.css';
 @import '@fontsource/plus-jakarta-sans/700.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
 
 /* Professional typography classes */
 .font-heading {

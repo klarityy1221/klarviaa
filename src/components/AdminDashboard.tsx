@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-  fetchTherapists,
-  fetchExercises,
-  fetchResources,
-  uploadResource,
-  API_BASE_URL
-} from '../api';
-import { Plus, Edit2, Trash2, Users, BookOpen, Activity, MessageCircle, Settings, BarChart3, User, Bell, Shield, Database } from 'lucide-react';
+import { MessageCircle, BarChart3, BookOpen, Users, Activity, Plus, Edit2, Trash2, Settings, Shield, Database, Bell } from 'lucide-react';
+import { API_BASE_URL, fetchTherapists, fetchExercises, fetchResources, uploadResource } from '../api';
 
-
+// Resource interface (learning content)
 interface Resource {
   id: number;
   title: string;
   type: 'podcast' | 'audiobook' | 'course';
   duration: string;
   category: string;
+  fileUrl?: string;
+  mimeType?: string;
+  originalName?: string;
 }
 
 interface Therapist {
@@ -48,7 +45,7 @@ function AdminDashboard() {
   const [showProfile, setShowProfile] = useState(false);
   const [adminProfile, setAdminProfile] = useState({
     name: 'Admin User',
-    email: 'admin@klarvia.com',
+    email: 'klaritymentalhealthblr@gmail.com',
     role: 'System Administrator',
     phone: '+1 (555) 123-4567',
     department: 'IT Operations',
@@ -66,12 +63,32 @@ function AdminDashboard() {
   const [contentList, setContentList] = useState<Resource[]>([]);
   const [psychologistList, setPsychologistList] = useState<Therapist[]>([]);
   const [exerciseList, setExerciseList] = useState<Exercise[]>([]);
+  const [sessionCount, setSessionCount] = useState<number>(0);
+  // Therapist availability time range
+  const [therapistFormStart, setTherapistFormStart] = useState<string>('');
+  const [therapistFormEnd, setTherapistFormEnd] = useState<string>('');
+  const [stats, setStats] = useState<{therapists:number; exercises:number; resources:number; users:number} | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   // Fetch all data on mount
   useEffect(() => {
-    fetchTherapists().then(setPsychologistList);
-    fetchExercises().then(setExerciseList);
-    fetchResources().then(setContentList);
+    fetchTherapists().then(setPsychologistList).catch((e) => console.error('fetchTherapists', e));
+    fetchExercises().then(setExerciseList).catch((e) => console.error('fetchExercises', e));
+    fetchResources().then(setContentList).catch((e) => console.error('fetchResources', e));
+    // Fetch aggregated stats from backend
+    setStatsLoading(true);
+    setStatsError(null);
+    fetch(`${API_BASE_URL}/stats`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error('Failed to load stats')))
+      .then(data => {
+        if (data && typeof data.sessions === 'number') {
+          setSessionCount(data.sessions);
+          setStats({therapists:data.therapists, exercises:data.exercises, resources:data.resources, users:data.users});
+        }
+      })
+      .catch((e: any) => setStatsError(e.message || 'Unable to load stats'))
+      .finally(() => setStatsLoading(false));
   }, []);
 
   // Modal form state
@@ -88,12 +105,13 @@ function AdminDashboard() {
   });
   const [resourceFile, setResourceFile] = useState<File | null>(null);
   const [resourceUploadError, setResourceUploadError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [therapistForm, setTherapistForm] = useState({
     name: '',
     specialization: '',
     availability: '',
     rating: 4.5,
-    image: '👩‍⚕️'
+    image: '/image.png'
   });
   const [exerciseForm, setExerciseForm] = useState({
     title: '',
@@ -128,8 +146,19 @@ function AdminDashboard() {
         rating: editingPsychologist.rating,
         image: editingPsychologist.image
       });
+      // Attempt to parse availability into start/end if pattern matches HH:MM-HH:MM
+      const match = editingPsychologist.availability.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+      if (match) {
+        setTherapistFormStart(match[1]);
+        setTherapistFormEnd(match[2]);
+      } else {
+        setTherapistFormStart('');
+        setTherapistFormEnd('');
+      }
     } else {
-      setTherapistForm({ name: '', specialization: '', availability: '', rating: 4.5, image: '👩‍⚕️' });
+  setTherapistForm({ name: '', specialization: '', availability: '', rating: 4.5, image: '/image.png' });
+      setTherapistFormStart('');
+      setTherapistFormEnd('');
     }
   }, [editingPsychologist]);
   useEffect(() => {
@@ -198,10 +227,26 @@ function AdminDashboard() {
       formData.append('category', data.category || '');
       formData.append('file', file);
       try {
-        await uploadResource(formData);
+        setResourceUploadError('');
+        setUploadProgress(0);
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `${API_BASE_URL}/resources`);
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) resolve();
+            else reject(new Error('Upload failed'));
+          };
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.upload.onprogress = (ev) => {
+            if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+          };
+          xhr.send(formData);
+        });
+        setUploadProgress(null);
         fetchResources().then(setContentList);
       } catch (err: any) {
         setResourceUploadError(err.message || 'Failed to upload resource');
+        setUploadProgress(null);
       }
     } else {
       // fallback to old method if no file
@@ -245,6 +290,9 @@ function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      {statsError && (
+        <div className="bg-red-600 text-white px-4 py-2 text-sm text-center">{statsError}</div>
+      )}
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -253,27 +301,10 @@ function AdminDashboard() {
               <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
               <p className="text-gray-400">Manage your AI therapist platform and additional resources.</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowSettings(true)}
-                className="p-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                <Settings className="w-5 h-5 text-gray-300" />
-              </button>
-              <button 
-                onClick={() => setShowProfile(true)}
-                className="flex items-center space-x-3 bg-gray-700 rounded-lg p-2 hover:bg-gray-600 transition-colors"
-              >
-                <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">A</span>
-                </div>
-                <span className="text-gray-300">Admin</span>
-              </button>
-            </div>
-          </div>
-        </div>
+            <div className="flex items-center space-x-4" />
+          </div>{/* end header inner flex */}
+        </div>{/* end header container */}
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* AI Therapist Management */}
         <section className="mb-12">
@@ -285,7 +316,9 @@ function AdminDashboard() {
                 <div className="w-3 h-3 bg-white/30 rounded-full"></div>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Active AI Sessions</h3>
-              <div className="text-3xl font-bold text-white mb-2">1,247</div>
+              <div className="text-3xl font-bold text-white mb-2">
+                {statsLoading ? <span className="block h-8 w-20 bg-white/30 rounded animate-pulse" /> : sessionCount}
+              </div>
               <p className="text-blue-100 text-sm mb-4">Live AI therapy conversations happening now</p>
               <button className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
                 Monitor Sessions
@@ -318,7 +351,7 @@ function AdminDashboard() {
             </div>
             <div>
               <p className="text-blue-100 text-sm font-medium mb-1">Learning Content</p>
-              <p className="text-2xl font-bold text-white">{contentList.length}</p>
+              <p className="text-2xl font-bold text-white">{statsLoading ? <span className="inline-block h-6 w-10 bg-white/30 rounded animate-pulse" /> : (stats ? stats.resources : contentList.length)}</p>
               <p className="text-blue-200 text-xs">+3 this week</p>
             </div>
           </div>
@@ -329,7 +362,7 @@ function AdminDashboard() {
             </div>
             <div>
               <p className="text-purple-100 text-sm font-medium mb-1">Human Therapists</p>
-              <p className="text-2xl font-bold text-white">{psychologistList.length}</p>
+              <p className="text-2xl font-bold text-white">{statsLoading ? <span className="inline-block h-6 w-10 bg-white/30 rounded animate-pulse" /> : (stats ? stats.therapists : psychologistList.length)}</p>
               <p className="text-purple-200 text-xs">2 available now</p>
             </div>
           </div>
@@ -340,7 +373,7 @@ function AdminDashboard() {
             </div>
             <div>
               <p className="text-green-100 text-sm font-medium mb-1">Quick Exercises</p>
-              <p className="text-2xl font-bold text-white">{exerciseList.length}</p>
+              <p className="text-2xl font-bold text-white">{statsLoading ? <span className="inline-block h-6 w-10 bg-white/30 rounded animate-pulse" /> : (stats ? stats.exercises : exerciseList.length)}</p>
               <p className="text-green-200 text-xs">Most popular: Breathing</p>
             </div>
           </div>
@@ -780,7 +813,7 @@ function AdminDashboard() {
                       </div>
                       <div>
                         <span className="text-gray-400">Sessions Managed:</span>
-                        <span className="text-white ml-2">1,247</span>
+                        <span className="text-white ml-2">{sessionCount}</span>
                       </div>
                       <div>
                         <span className="text-gray-400">Content Created:</span>
@@ -889,6 +922,14 @@ function AdminDashboard() {
                     className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white"
                   />
                   {resourceUploadError && <div className="text-red-400 text-xs mt-1">{resourceUploadError}</div>}
+                  {uploadProgress !== null && (
+                    <div className="mt-2">
+                      <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div className="bg-blue-500 h-3" style={{ width: `${uploadProgress}%` }} />
+                      </div>
+                      <div className="text-xs text-gray-300 mt-1">Uploading: {uploadProgress}%</div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex space-x-3 pt-4">
                   <button
@@ -919,18 +960,19 @@ function AdminDashboard() {
               </h3>
               <form className="space-y-4" onSubmit={async e => {
                 e.preventDefault();
-                if (!therapistForm.name.trim() || !therapistForm.specialization.trim() || !therapistForm.availability.trim() || !therapistForm.image.trim()) {
-                  alert('Please fill in all required fields.');
+                if (!therapistForm.name.trim() || !therapistForm.specialization.trim()) {
+                  alert('Please fill in required fields.');
                   return;
                 }
-                if (therapistForm.image.length > 2) {
-                  alert('Please enter a single emoji for the image.');
-                  return;
+                // Build availability string from time range if provided
+                if (therapistFormStart && therapistFormEnd) {
+                  setTherapistForm(f => ({ ...f, availability: `${therapistFormStart}-${therapistFormEnd}` }));
                 }
+                const payload = { ...therapistForm, availability: therapistForm.availability || `${therapistFormStart}-${therapistFormEnd}` };
                 if (editingPsychologist) {
-                  await updateTherapist(editingPsychologist.id, therapistForm);
+                  await updateTherapist(editingPsychologist.id, payload);
                 } else {
-                  await addTherapist(therapistForm);
+                  await addTherapist(payload);
                 }
                 setShowPsychologistModal(false);
                 setEditingPsychologist(null);
@@ -957,14 +999,30 @@ function AdminDashboard() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Availability</label>
-                  <input
-                    type="text"
-                    value={therapistForm.availability}
-                    onChange={e => setTherapistForm(f => ({ ...f, availability: e.target.value }))}
-                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white placeholder-gray-400"
-                    placeholder="Mon-Fri 9AM-5PM"
-                  />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Availability (Time Range)</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">From</label>
+                      <input
+                        type="time"
+                        value={therapistFormStart}
+                        onChange={e => setTherapistFormStart(e.target.value)}
+                        className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">To</label>
+                      <input
+                        type="time"
+                        value={therapistFormEnd}
+                        onChange={e => setTherapistFormEnd(e.target.value)}
+                        className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white"
+                      />
+                    </div>
+                  </div>
+                  {therapistForm.availability && (
+                    <p className="text-xs text-gray-400 mt-2">Current stored: {therapistForm.availability}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Rating</label>

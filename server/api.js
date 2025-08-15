@@ -1,155 +1,124 @@
 import express from 'express';
 import multer from 'multer';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { 
+  getResources, addResource, updateResource, deleteResource,
+  getTherapists, addTherapist, updateTherapist, deleteTherapist,
+  getExercises, addExercise, updateExercise, deleteExercise,
+  getSessionsByUser, addSession, getStats
+} from './models.js';
+import { updateUser } from './models.js';
+
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+
+// Ensure uploads directory exists and configure storage to preserve original extension
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const safeOriginal = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, unique + '-' + safeOriginal);
+  }
+});
+const upload = multer({ storage });
 
 router.get('/sessions', async (req, res) => {
-  const db = await getDb();
   const { userId } = req.query;
   if (!userId) return res.status(400).json({ error: 'Missing userId' });
-  const sessions = await db.all('SELECT * FROM sessions WHERE userId = ?', [userId]);
-  res.json(sessions);
+  try {
+    const sessions = await getSessionsByUser(userId);
+    res.json(sessions);
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to fetch sessions' });
+  }
 });
-let db;
-
-async function getDb() {
-  if (db) return db;
-  let dbDir = path.dirname(new URL(import.meta.url).pathname);
-  if (process.platform === 'win32' && dbDir.startsWith('/')) {
-    dbDir = dbDir.slice(1);
-  }
-  const dbPath = path.join(dbDir, 'database.sqlite');
-  if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
-  db = await open({ filename: dbPath, driver: sqlite3.Database });
-  await db.exec(`CREATE TABLE IF NOT EXISTS therapists (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    specialization TEXT,
-    availability TEXT,
-    rating REAL,
-    image TEXT
-  )`);
-  await db.exec(`CREATE TABLE IF NOT EXISTS exercises (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    duration TEXT,
-    description TEXT,
-    tag TEXT,
-    tagColor TEXT
-  )`);
-  await db.exec(`CREATE TABLE IF NOT EXISTS resources (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT,
-    type TEXT,
-    duration TEXT,
-    category TEXT
-  )`);
-  await db.exec(`CREATE TABLE IF NOT EXISTS sessions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    therapistId INTEGER,
-    userId INTEGER,
-    date TEXT,
-    time TEXT
-  )`);
-  return db;
-}
 
 // Therapists CRUD
-router.get('/therapists', async (req, res) => {
-  const db = await getDb();
-  const therapists = await db.all('SELECT * FROM therapists');
-  res.json(therapists);
+router.get('/therapists', async (_req, res) => {
+  try { res.json(await getTherapists()); } catch { res.status(500).json({ error: 'Failed to fetch therapists' }); }
 });
 router.post('/therapists', async (req, res) => {
-  const db = await getDb();
-  const { name, specialization, availability, rating, image } = req.body;
-  const result = await db.run('INSERT INTO therapists (name, specialization, availability, rating, image) VALUES (?, ?, ?, ?, ?)', [name, specialization, availability, rating, image]);
-  res.json({ id: result.lastID });
+  try { const t = await addTherapist(req.body); res.json(t); } catch { res.status(400).json({ error: 'Failed to add therapist' }); }
 });
 router.put('/therapists/:id', async (req, res) => {
-  const db = await getDb();
-  const { name, specialization, availability, rating, image } = req.body;
-  await db.run('UPDATE therapists SET name=?, specialization=?, availability=?, rating=?, image=? WHERE id=?', [name, specialization, availability, rating, image, req.params.id]);
-  res.json({ success: true });
+  try { await updateTherapist(req.params.id, req.body); res.json({ success: true }); } catch { res.status(400).json({ error: 'Failed to update therapist' }); }
 });
 router.delete('/therapists/:id', async (req, res) => {
-  const db = await getDb();
-  await db.run('DELETE FROM therapists WHERE id=?', [req.params.id]);
-  res.json({ success: true });
+  try { await deleteTherapist(req.params.id); res.json({ success: true }); } catch { res.status(400).json({ error: 'Failed to delete therapist' }); }
 });
 
 // Exercises CRUD
-router.get('/exercises', async (req, res) => {
-  const db = await getDb();
-  const exercises = await db.all('SELECT * FROM exercises');
-  res.json(exercises);
+router.get('/exercises', async (_req, res) => {
+  try { res.json(await getExercises()); } catch { res.status(500).json({ error: 'Failed to fetch exercises' }); }
 });
 router.post('/exercises', async (req, res) => {
-  const db = await getDb();
-  const { title, duration, description, tag, tagColor } = req.body;
-  const result = await db.run('INSERT INTO exercises (title, duration, description, tag, tagColor) VALUES (?, ?, ?, ?, ?)', [title, duration, description, tag, tagColor]);
-  res.json({ id: result.lastID });
+  try { const ex = await addExercise(req.body); res.json(ex); } catch { res.status(400).json({ error: 'Failed to add exercise' }); }
 });
 router.put('/exercises/:id', async (req, res) => {
-  const db = await getDb();
-  const { title, duration, description, tag, tagColor } = req.body;
-  await db.run('UPDATE exercises SET title=?, duration=?, description=?, tag=?, tagColor=? WHERE id=?', [title, duration, description, tag, tagColor, req.params.id]);
-  res.json({ success: true });
+  try { await updateExercise(req.params.id, req.body); res.json({ success: true }); } catch { res.status(400).json({ error: 'Failed to update exercise' }); }
 });
 router.delete('/exercises/:id', async (req, res) => {
-  const db = await getDb();
-  await db.run('DELETE FROM exercises WHERE id=?', [req.params.id]);
-  res.json({ success: true });
+  try { await deleteExercise(req.params.id); res.json({ success: true }); } catch { res.status(400).json({ error: 'Failed to delete exercise' }); }
 });
 
 // Resources CRUD with file upload
-router.get('/resources', async (req, res) => {
-  const db = await getDb();
-  const resources = await db.all('SELECT * FROM resources');
-  res.json(resources);
+router.get('/resources', async (_req, res) => {
+  try { res.json(await getResources()); } catch { res.status(500).json({ error: 'Failed to fetch resources' }); }
 });
 // Accepts multipart/form-data for file upload
 router.post('/resources', upload.single('file'), async (req, res) => {
-  const db = await getDb();
-  const { title, type, duration, category } = req.body;
-  let fileUrl = null;
-  if (req.file) {
-    fileUrl = `/uploads/${req.file.filename}`;
+  try {
+    const { title, type, duration, category } = req.body;
+    let fileUrl = null, mimeType = null, originalName = null;
+    if (req.file) {
+      fileUrl = `/uploads/${req.file.filename}`;
+      mimeType = req.file.mimetype;
+      originalName = req.file.originalname;
+    }
+    const resource = await addResource({ title, type, duration, category, fileUrl, mimeType, originalName });
+    res.json(resource);
+  } catch (err) {
+    res.status(500).json({ error: 'Upload failed' });
   }
-  const result = await db.run('INSERT INTO resources (title, type, duration, category, fileUrl) VALUES (?, ?, ?, ?, ?)', [title, type, duration, category, fileUrl]);
-  res.json({ id: result.lastID, fileUrl });
 });
 router.put('/resources/:id', async (req, res) => {
-  const db = await getDb();
-  const { title, type, duration, category } = req.body;
-  await db.run('UPDATE resources SET title=?, type=?, duration=?, category=? WHERE id=?', [title, type, duration, category, req.params.id]);
-  res.json({ success: true });
+  try { await updateResource(req.params.id, req.body); res.json({ success: true }); } catch { res.status(400).json({ error: 'Failed to update resource' }); }
 });
 router.delete('/resources/:id', async (req, res) => {
-  const db = await getDb();
-  await db.run('DELETE FROM resources WHERE id=?', [req.params.id]);
-  res.json({ success: true });
+  try { await deleteResource(req.params.id); res.json({ success: true }); } catch { res.status(400).json({ error: 'Failed to delete resource' }); }
 });
 
 // Book session (dummy)
 router.post('/book-session', async (req, res) => {
-  const db = await getDb();
   const { therapistId, userId, date, time } = req.body;
-  if (!therapistId || !userId || !date || !time) {
-    return res.status(400).json({ error: 'Missing fields' });
+  if (!therapistId || !userId || !date || !time) return res.status(400).json({ error: 'Missing fields' });
+  try { const session = await addSession({ therapistId, userId, date, time }); res.json({ success: true, id: session.id }); } catch { res.status(400).json({ error: 'Failed to book session' }); }
+});
+
+// Aggregated stats endpoint
+router.get('/stats', async (_req, res) => {
+  try { res.json(await getStats()); } catch { res.status(500).json({ error: 'Failed to load stats' }); }
+});
+
+// Update user profile
+router.put('/profile', async (req, res) => {
+  try {
+    const { id, name, email, phone, emergencyContact, preferences } = req.body;
+    if (!id) return res.status(400).json({ error: 'Missing user id' });
+    const updated = await updateUser(id, { name, email, phone, emergencyContact, preferences });
+    res.json(updated);
+  } catch (err) {
+    console.error('profile update error', err);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
-  const result = await db.run(
-    'INSERT INTO sessions (therapistId, userId, date, time) VALUES (?, ?, ?, ?)',
-    [therapistId, userId, date, time]
-  );
-  res.json({ success: true, id: result.lastID });
 });
 
 export default router;
