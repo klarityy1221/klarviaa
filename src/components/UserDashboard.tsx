@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchTherapists, fetchExercises, fetchResources, bookTherapistSession, fetchUserSessions } from '../api';
+import { fetchTherapists, fetchExercises, fetchResources, bookTherapistSession, fetchUserSessions, resolveFileUrl } from '../api';
 import { 
   MessageCircle, 
   Activity, 
@@ -42,6 +42,8 @@ interface Resource {
   duration: string;
   category: string;
   fileUrl?: string;
+  mimeType?: string;
+  originalName?: string;
 }
 
 export default function UserDashboard() {
@@ -93,10 +95,10 @@ export default function UserDashboard() {
     async function loadData() {
       try {
         const [therapistsData, exercisesData, resourcesData] = await Promise.all([
-          fetchTherapists(),
-          fetchExercises(),
-          fetchResources()
-        ]);
+            fetchTherapists(),
+            fetchExercises(),
+            fetchResources()
+          ]).catch(err => { console.error('loadData:', err); return [[], [], []]; });
         setTherapists(therapistsData);
         setExercises(exercisesData);
         setResources(resourcesData);
@@ -477,32 +479,40 @@ export default function UserDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {resources.map((resource) => {
-              // Prefer fileUrl if present
+              // Prefer fileUrl if present; fallback to constructed path only for legacy items
               let url = resource.fileUrl || `/uploads/${encodeURIComponent(resource.title)}.mp3`;
+              const resolvedUrl = resolveFileUrl(url) || '';
               return (
                 <div
                   key={resource.id}
                   className="glass-card resource-card rounded-2xl p-6 cursor-pointer"
-                  onClick={() => {
-                    if ((resource.type === 'podcast' || resource.type === 'audiobook') && resource.fileUrl) {
-                      navigate('/audio', { state: { resource: { ...resource, url: resource.fileUrl } } });
-                    } else if (resource.type === 'podcast' || resource.type === 'audiobook') {
-                      navigate('/audio', { state: { resource: { ...resource, url } } });
-                    }
-                  }}
+                    onClick={() => {
+                      // Pass the raw stored path (e.g. '/uploads/..' or fileUrl) and let the audio player
+                      // call `resolveFileUrl` to construct the absolute URL. Avoid double-resolving.
+                      if (resource.fileUrl || url) {
+                        const raw = resource.fileUrl || url;
+                        // If resource is a video file, navigate to the video player
+                        const isVideo = (resource.mimeType && /^video\//i.test(resource.mimeType)) || /\.(mp4|webm|ogg)$/i.test(raw);
+                        if (isVideo) {
+                          navigate('/video', { state: { resource: { ...resource, url: raw } } });
+                        } else if (resource.type === 'podcast' || resource.type === 'audiobook') {
+                          navigate('/audio', { state: { resource: { ...resource, url: raw } } });
+                        }
+                      }
+                    }}
                 >
                   {/* Preview for image, audio, video */}
-                  {resource.fileUrl && resource.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
-                    <img src={resource.fileUrl} alt={resource.title} className="w-full h-32 object-cover rounded-xl mb-3" />
+                  {resolvedUrl && resolvedUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) && (
+                    <img src={resolvedUrl} alt={resource.title} className="w-full h-32 object-cover rounded-xl mb-3" />
                   )}
-                  {resource.fileUrl && resource.fileUrl.match(/\.(mp3|wav|ogg)$/i) && (
+                  {resolvedUrl && resolvedUrl.match(/\.(mp3|wav|ogg)$/i) && (
                     <audio controls className="w-full mb-3">
-                      <source src={resource.fileUrl} />
+                      <source src={resolvedUrl} />
                     </audio>
                   )}
-                  {resource.fileUrl && resource.fileUrl.match(/\.(mp4|webm|ogg)$/i) && (
+                  {resolvedUrl && resolvedUrl.match(/\.(mp4|webm|ogg)$/i) && (
                     <video controls className="w-full h-32 object-cover rounded-xl mb-3">
-                      <source src={resource.fileUrl} />
+                      <source src={resolvedUrl} />
                     </video>
                   )}
                   {/* Fallback icon if no preview */}
@@ -707,11 +717,29 @@ export default function UserDashboard() {
               
               <form 
                 className="space-y-6"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  // Handle profile update
-                  console.log('Profile updated:', profileData);
-                  setShowProfile(false);
+                  // Call API to update profile
+                  try {
+                    const userId = Number(localStorage.getItem('userId') || '1');
+                    const payload = {
+                      id: userId,
+                      name: profileData.name,
+                      email: profileData.email,
+                      phone: profileData.phone,
+                      emergencyContact: profileData.emergencyContact,
+                      preferences: profileData.preferences
+                    };
+                    // updateUserProfile comes from src/api
+                    // import at top of file
+                    // ...existing code...
+                    const updated = await (await import('../api')).updateUserProfile(payload);
+                    setProfileData(prev => ({ ...prev, name: updated.name || prev.name, email: updated.email || prev.email, phone: updated.phone || prev.phone, emergencyContact: updated.emergencycontact || prev.emergencyContact, preferences: updated.preferences || prev.preferences }));
+                    setShowProfile(false);
+                  } catch (err: any) {
+                    console.error('Profile save failed', err);
+                    alert(err?.message || 'Failed to save profile');
+                  }
                 }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

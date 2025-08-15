@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import AudioPlayerPage from './components/AudioPlayerPage';
+import VideoPlayerPage from './components/VideoPlayerPage';
 import LandingPage from './components/LandingPage';
 import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
@@ -96,7 +97,8 @@ function AppRoutes() {
         <Route path="/login" element={<Auth setUserType={setUserType} />} />
         <Route path="/user" element={userType === 'user' ? <UserDashboard /> : <Navigate to="/login" />} />
         <Route path="/admin" element={userType === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
-        <Route path="/audio" element={<AudioPlayerPage />} />
+  <Route path="/audio" element={<AudioPlayerPage />} />
+  <Route path="/video" element={<VideoPlayerPage />} />
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
