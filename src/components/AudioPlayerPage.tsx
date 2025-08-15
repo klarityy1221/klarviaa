@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
+import { resolveFileUrl } from '../api';
 
 export default function AudioPlayerPage() {
   const location = useLocation();
@@ -49,10 +50,39 @@ export default function AudioPlayerPage() {
           </div>
         )}
         {showPlayer && (
-          <audio controls autoPlay className="w-full max-w-md mt-4 shadow-lg rounded-lg">
-            <source src={resource.url} type="audio/mpeg" />
-            Your browser does not support the audio element.
-          </audio>
+          resource.url ? (
+            (() => {
+              const url = resource.url as string;
+              const mime: string | undefined = resource.mimeType;
+              const isVideo = (mime && /^video\//i.test(mime)) || /\.(mp4|webm|ogg)$/i.test(url);
+              if (isVideo) {
+                return (
+                  <div className="w-full max-w-4xl mt-4 shadow-lg rounded-lg overflow-hidden bg-black">
+                    <video
+                      controls
+                      autoPlay
+                      // mute by default to improve autoplay chances in some browsers
+                      muted={true}
+                      className="w-full h-auto max-h-[70vh] object-contain bg-black"
+                      playsInline
+                    >
+                      <source src={resolveFileUrl(url)} type={mime || 'video/mp4'} />
+                      Your browser does not support the video element.
+                    </video>
+                  </div>
+                );
+              }
+              // Fallback to audio player
+              return (
+                <audio controls autoPlay className="w-full max-w-md mt-4 shadow-lg rounded-lg">
+                  <source src={resolveFileUrl(url)} type={mime || 'audio/mpeg'} />
+                  Your browser does not support the audio element.
+                </audio>
+              );
+            })()
+          ) : (
+            <div className="text-white">No media URL available.</div>
+          )
         )}
       </div>
       {/* Animation CSS */}

@@ -14,7 +14,9 @@
     "@fontsource/inter": "^5.2.6",
     "@fontsource/open-sans": "^5.2.6",
     "@fontsource/plus-jakarta-sans": "^5.2.6",
+    "dotenv": "^17.2.1",
     "lucide-react": "^0.344.0",
+    "pg": "^8.16.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1"
