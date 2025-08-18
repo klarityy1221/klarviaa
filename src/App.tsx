@@ -8,6 +8,8 @@ import LandingPage from './components/LandingPage';
 import UserDashboard from './components/UserDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import Auth from './components/Auth';
+import ViewAll from './components/ViewAll';
+import AIChat from './components/AIChat';
 import { User, Shield, Brain } from 'lucide-react';
 
 
@@ -97,6 +99,9 @@ function AppRoutes() {
         <Route path="/login" element={<Auth setUserType={setUserType} />} />
         <Route path="/user" element={userType === 'user' ? <UserDashboard /> : <Navigate to="/login" />} />
         <Route path="/admin" element={userType === 'admin' ? <AdminDashboard /> : <Navigate to="/login" />} />
+  <Route path="/view-all" element={<ViewAll />} />
+  <Route path="/therapists" element={<ViewAll defaultType="therapists" />} />
+  <Route path="/ai-chat" element={<AIChat />} />
   <Route path="/audio" element={<AudioPlayerPage />} />
   <Route path="/video" element={<VideoPlayerPage />} />
         {/* Fallback route */}

@@ -11,6 +11,12 @@ import { updateUser } from './models.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import OpenAI from 'openai';
+import fetch from 'node-fetch';
+import { addChatMessage, getChatsByUser } from './models.js';
+
+const MAX_MESSAGE_LENGTH = Number(process.env.MAX_MESSAGE_LENGTH || 1000);
 
 const router = express.Router();
 
@@ -29,6 +35,21 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage });
+
+dotenv.config();
+// Defensive OpenAI client instantiation: only create client if key is present.
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+let openai = null;
+if (OPENAI_API_KEY) {
+  try {
+    openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+  } catch (e) {
+    console.error('Failed to create OpenAI client:', e);
+    openai = null;
+  }
+} else {
+  console.warn('OPENAI_API_KEY not set — AI endpoints will return an error until configured.');
+}
 
 router.get('/sessions', async (req, res) => {
   const { userId } = req.query;
@@ -118,6 +139,223 @@ router.put('/profile', async (req, res) => {
   } catch (err) {
     console.error('profile update error', err);
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Chat endpoint: logs user message, calls OpenAI chat completion, logs assistant reply, returns { reply }
+router.post('/chat', async (req, res) => {
+  try {
+    const { userId, message } = req.body;
+    const user_id = userId || req.body.user_id;
+  if (!user_id || typeof message !== 'string') return res.status(400).json({ error: 'Missing userId or message' });
+  if (message.length === 0 || message.length > MAX_MESSAGE_LENGTH) return res.status(400).json({ error: `Message must be 1..${MAX_MESSAGE_LENGTH} characters` });
+
+    if (!openai) {
+      // Local fallback reply for development when no OpenAI key is configured.
+      const fallbackReply = `Demo AI (local): I don't have an OpenAI API key configured. You said: "${message}"`;
+      try {
+        await addChatMessage({ user_id, role: 'assistant', content: fallbackReply });
+      } catch (e) {
+        console.error('Failed to save fallback assistant message', e);
+      }
+      return res.json({ reply: fallbackReply });
+    }
+
+    // Store user message
+    await addChatMessage({ user_id, role: 'user', content: message });
+
+    // Prepare messages for OpenAI
+    // Optionally, fetch recent chat history for context
+    const history = await getChatsByUser(user_id, 20);
+    const messages = history
+      .map(h => ({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.content }))
+      .reverse();
+    // Append latest user message
+    messages.push({ role: 'user', content: message });
+
+    // Call OpenAI chat completions
+  const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      messages,
+      max_tokens: 500
+    });
+
+    const reply = completion.choices && completion.choices[0] && completion.choices[0].message ? completion.choices[0].message.content : (completion.choices && completion.choices[0] && completion.choices[0].text) || '';
+
+    // Store assistant reply
+    await addChatMessage({ user_id, role: 'assistant', content: reply });
+
+    res.json({ reply });
+  } catch (err) {
+    console.error('chat error', err);
+    res.status(500).json({ error: 'Chat failed' });
+  }
+});
+
+// Return recent chat history for a user
+router.get('/chats', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.query.user_id;
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    const chats = await getChatsByUser(userId, 1000);
+    res.json(chats);
+  } catch (err) {
+    console.error('get chats error', err);
+    res.status(500).json({ error: 'Failed to fetch chats' });
+  }
+});
+
+// History endpoint: return last N messages for a user_id (query: userId, limit)
+router.get('/history', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.query.user_id;
+    const limit = Number(req.query.limit || req.query.n || 100);
+    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    const chats = await getChatsByUser(userId, limit);
+    res.json(chats);
+  } catch (err) {
+    console.error('history error', err);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
+// SSE streaming endpoint: GET /api/chat/stream?userId=1&message=Hello
+router.get('/chat/stream', async (req, res) => {
+  try {
+    const userId = req.query.userId || req.query.user_id;
+    const message = req.query.message;
+  if (!userId || typeof message !== 'string' && typeof message !== 'number') return res.status(400).json({ error: 'Missing userId or message' });
+  if (String(message).length === 0 || String(message).length > MAX_MESSAGE_LENGTH) return res.status(400).json({ error: `Message must be 1..${MAX_MESSAGE_LENGTH} characters` });
+
+    if (!OPENAI_API_KEY) {
+      // Simulated SSE stream fallback for local development
+      const demo = `Demo AI (local): Response to "${String(message)}"`;
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no'
+      });
+      const tokens = demo.match(/\S+\s*/g) || [demo];
+      let i = 0;
+      const sendChunk = () => {
+        if (i < tokens.length) {
+          res.write(`data: ${JSON.stringify(tokens[i])}\n\n`);
+          i++;
+          setTimeout(sendChunk, 40);
+        } else {
+          // persist assistant reply
+          (async () => {
+            try { await addChatMessage({ user_id: userId, role: 'assistant', content: demo }); } catch (e) { console.error('save demo reply failed', e); }
+          })();
+          res.write('data: [DONE]\n\n');
+          res.end();
+        }
+      };
+      // start streaming
+      sendChunk();
+      return;
+    }
+
+    // Persist user message
+    await addChatMessage({ user_id: userId, role: 'user', content: String(message) });
+
+    // Build messages with recent history for context
+    const history = await getChatsByUser(userId, 20);
+    const messages = history
+      .map(h => ({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.content }))
+      .reverse();
+    messages.push({ role: 'user', content: String(message) });
+
+    // Prepare OpenAI request
+    const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+    const body = JSON.stringify({ model, messages, stream: true });
+
+    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body
+    });
+
+    if (!openaiRes.ok || !openaiRes.body) {
+      const text = await openaiRes.text();
+      console.error('OpenAI stream error', openaiRes.status, text);
+      return res.status(502).json({ error: 'OpenAI stream error', details: text });
+    }
+
+    // Set SSE headers
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
+
+    // Stream parsing
+    let assistantReply = '';
+    let buffer = '';
+    const stream = openaiRes.body;
+
+    stream.on('data', (chunk) => {
+      try {
+        const str = chunk.toString('utf8');
+        buffer += str;
+        const parts = buffer.split(/\n\n/);
+        buffer = parts.pop() || '';
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith('data:')) continue;
+          const data = line.replace(/^data:\s*/, '').trim();
+          if (data === '[DONE]') {
+            // Finish
+            // send done event
+            res.write('data: [DONE]\n\n');
+            // persist assistant reply
+            (async () => {
+              try { await addChatMessage({ user_id: userId, role: 'assistant', content: assistantReply }); } catch (e) { console.error('save assistant reply failed', e); }
+            })();
+            res.end();
+            return;
+          }
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices && parsed.choices[0] && (parsed.choices[0].delta?.content || parsed.choices[0].delta?.role) ? parsed.choices[0].delta.content || '' : '';
+            if (delta) {
+              assistantReply += delta;
+              // send token to client (stringified to be safe)
+              res.write(`data: ${JSON.stringify(delta)}\n\n`);
+            }
+          } catch (err) {
+            // ignore non-json chunks
+          }
+        }
+      } catch (err) {
+        console.error('stream parse error', err);
+      }
+    });
+
+    stream.on('end', () => {
+      // If stream ends without explicit [DONE], persist and close
+      if (assistantReply) {
+        addChatMessage({ user_id: userId, role: 'assistant', content: assistantReply }).catch(e => console.error('save reply on end failed', e));
+      }
+      try { res.write('data: [DONE]\n\n'); } catch (e) {}
+      try { res.end(); } catch (e) {}
+    });
+
+    stream.on('error', (err) => {
+      console.error('openai stream error', err);
+      try { res.write('event: error\ndata: "stream error"\n\n'); } catch (e) {}
+      try { res.end(); } catch (e) {}
+    });
+
+    // Keep the connection open
+  } catch (err) {
+    console.error('chat stream handler error', err);
+    res.status(500).json({ error: 'Chat stream failed' });
   }
 });
 
