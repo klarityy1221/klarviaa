@@ -112,6 +112,28 @@ export async function initDb() {
     date TEXT,
     time TEXT
   )`);
+
+  await pool.query(`CREATE TABLE IF NOT EXISTS chats (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  )`);
+}
+
+export async function addChatMessage({ user_id, role, content }) {
+  const { rows } = await pool.query(
+    'INSERT INTO chats (user_id, role, content, created_at, updated_at) VALUES ($1,$2,$3,now(),now()) RETURNING *',
+    [user_id, role, content]
+  );
+  return rows[0];
+}
+
+export async function getChatsByUser(userId, limit = 100) {
+  const { rows } = await pool.query('SELECT * FROM chats WHERE user_id=$1 ORDER BY created_at DESC LIMIT $2', [userId, limit]);
+  return rows;
 }
 
 export async function getUsers() {

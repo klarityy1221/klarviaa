@@ -52,8 +52,15 @@ export default function UserDashboard() {
   const [sessions, setSessions] = useState<any[]>([]);
   // Fetch booked sessions for this user
   useEffect(() => {
-    // For demo, use userId=1. Replace with real user id if available
-    fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
+    // Read logged-in userId from localStorage and fetch their sessions
+    const stored = localStorage.getItem('userId');
+    const userId = stored ? Number(stored) : 0;
+    if (!userId) {
+      // No logged-in user id available yet; clear sessions
+      setSessions([]);
+      return;
+    }
+    fetchUserSessions(userId).then(setSessions).catch(() => setSessions([]));
   }, []);
 
   const username = localStorage.getItem('username') || 'User';
@@ -229,10 +236,10 @@ export default function UserDashboard() {
                 </div>
                 <p className="text-gray-500 mb-4">No sessions booked yet.</p>
                 <button
-                  onClick={() => setShowBookingBox(true)}
+                  onClick={() => document.getElementById('therapists-section')?.scrollIntoView({ behavior: 'smooth' })}
                   className="bg-klarvia-blue text-white px-6 py-2 rounded-lg font-semibold hover:bg-klarvia-blue-dark transition-colors"
                 >
-                  Book Your First Session
+                  Browse Therapists to Book
                 </button>
               </div>
             ) : (
@@ -246,10 +253,10 @@ export default function UserDashboard() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900">
-                            {therapists.find(t => t.id === session.therapistId)?.name || `Therapist ID ${session.therapistId}`}
+                            {therapists.find(t => Number(t.id) === Number(session.therapistId))?.name || `Therapist ID ${session.therapistId}`}
                           </h3>
                           <p className="text-gray-600 text-sm">
-                            {therapists.find(t => t.id === session.therapistId)?.specialization || 'Mental Health Professional'}
+                            {therapists.find(t => Number(t.id) === Number(session.therapistId))?.specialization || 'Mental Health Professional'}
                           </p>
                         </div>
                       </div>
@@ -260,12 +267,7 @@ export default function UserDashboard() {
                     </div>
                   </div>
                 ))}
-                <button
-                  onClick={() => setShowBookingBox(true)}
-                  className="w-full glass-card rounded-2xl p-4 text-klarvia-blue font-semibold hover:bg-klarvia-blue/5 transition-colors border-2 border-dashed border-klarvia-blue/30"
-                >
-                  + Book Another Session
-                </button>
+                {/* booking moved to Therapists section below */}
               </div>
             )}
           </div>
@@ -328,6 +330,46 @@ export default function UserDashboard() {
 
         {/* AI Therapist CTA Section */}
         <section className="mb-12">
+        {/* Therapists Section (allows booking) */}
+        <section id="therapists-section" className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-heading font-bold text-gray-900">Therapists</h2>
+            <div className="flex items-center space-x-4">
+              
+              <button onClick={() => navigate('/therapists')} className="text-klarvia-blue text-sm">View All</button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {therapists.map(t => (
+              <div key={t.id} className="glass-card rounded-2xl p-6 flex flex-col">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full overflow-hidden flex items-center justify-center">
+                    {t.image ? (
+                      <img src={t.image} alt={t.name} className="object-cover w-full h-full" />
+                    ) : (
+                      <span className="text-xl font-semibold text-gray-700">{t.name?.charAt(0)}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{t.name}</h3>
+                    <p className="text-gray-600 text-sm">{t.specialization}</p>
+                    <div className="text-sm text-gray-500 mt-1">Rating: {t.rating ?? '—'}</div>
+                  </div>
+                </div>
+                <div className="flex-1 text-sm text-gray-600 mb-4">Availability: {t.availability || 'Check schedule'}</div>
+                <div className="mt-auto">
+                  <button
+                    onClick={() => { setBookingTherapistId(String(t.id)); setShowBookingBox(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className="w-full bg-klarvia-blue text-white px-4 py-3 rounded-xl font-semibold hover:bg-klarvia-blue-dark transition-colors"
+                  >
+                    Book
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
           <div className="glass-card rounded-3xl p-8 lg:p-12">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div>
@@ -340,7 +382,7 @@ export default function UserDashboard() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     className="btn-primary text-white px-8 py-4 rounded-xl font-heading font-semibold text-lg"
-                    onClick={() => alert('AI Session started! (Real integration coming soon)')}
+                    onClick={() => navigate('/ai-chat')}
                   >
                     Start Session
                   </button>
@@ -386,7 +428,7 @@ export default function UserDashboard() {
         <section className="mb-12">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-heading font-bold text-gray-900">Quick Exercises</h2>
-            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors" onClick={() => alert('Feature coming soon!')}>
+            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors" onClick={() => navigate('/view-all?type=exercises')}>
               View All
             </button>
           </div>
@@ -473,7 +515,7 @@ export default function UserDashboard() {
         <section className="mb-12">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-heading font-bold text-gray-900">Learning Resources</h2>
-            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors" onClick={() => alert('Feature coming soon!')}>
+            <button className="text-klarvia-blue font-medium hover:text-klarvia-blue-dark transition-colors" onClick={() => navigate('/view-all?type=resources')}>
               View All
             </button>
           </div>
@@ -567,9 +609,12 @@ export default function UserDashboard() {
                   setBookingErrorBox('');
                   try {
                     if (!bookingTherapistId) throw new Error('Select a therapist');
+                    const sId = localStorage.getItem('userId');
+                    const realUserId = sId ? Number(sId) : 0;
+                    if (!realUserId) throw new Error('User not authenticated');
                     await bookTherapistSession(
                       Number(bookingTherapistId),
-                      1, // Replace with real user id if available
+                      realUserId,
                       bookingDateBox,
                       bookingTimeBox
                     );
@@ -578,7 +623,9 @@ export default function UserDashboard() {
                     setBookingDateBox('');
                     setBookingTimeBox('');
                     // Refresh sessions
-                    fetchUserSessions(1).then(setSessions).catch(() => setSessions([]));
+                    const s = localStorage.getItem('userId');
+                    const uid = s ? Number(s) : 0;
+                    if (uid) fetchUserSessions(uid).then(setSessions).catch(() => setSessions([]));
                   } catch (err: any) {
                     setBookingErrorBox(err.message || 'Failed to book session');
                   } finally {
@@ -721,7 +768,8 @@ export default function UserDashboard() {
                   e.preventDefault();
                   // Call API to update profile
                   try {
-                    const userId = Number(localStorage.getItem('userId') || '1');
+                    const userId = Number(localStorage.getItem('userId'));
+                    if (!userId) throw new Error('User not authenticated');
                     const payload = {
                       id: userId,
                       name: profileData.name,

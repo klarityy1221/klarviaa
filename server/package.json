@@ -5,18 +5,25 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
+    "dev": "nodemon --watch . --delay 250ms index.js",
     "migrate": "node migrateSqliteToPostgres.js",
     "test:api": "node testApi.js",
     "test:full": "node fullTest.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^6.11.2",
     "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.4.0",
+    "pg": "^8.16.3",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.6",
-    "pg": "^8.16.3",
-  "dotenv": "^17.2.1",
-  "node-fetch": "^3.3.2"
+    "vite-react-typescript-starter": "file:.."
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }

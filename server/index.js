@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
 import apiRoutes from './api.js';
+import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { initDb, getUsers, createUser, getUserByEmailAndPassword, getUserByUsername } from './models.js';
@@ -15,11 +16,45 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.use(cors());
-app.use(express.json());
+// Configure CORS to allow localhost in development and a specific production origin
+const CLIENT_URL_DEV = process.env.CLIENT_URL_DEV || 'http://localhost:5173';
+const CLIENT_URL_PROD = process.env.CLIENT_URL_PROD || '';
+const whitelist = process.env.NODE_ENV === 'production'
+  ? (CLIENT_URL_PROD.split(',').map(s => s.trim()).filter(Boolean))
+  : (CLIENT_URL_DEV.split(',').map(s => s.trim()).filter(Boolean));
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser tools like curl/postman (no origin)
+    if (!origin) return callback(null, true);
+    if (whitelist.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Limit JSON body size to prevent large payloads
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '16kb' }));
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Rate limiter: 60 requests per minute per IP for API routes
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
+
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api', apiRoutes);
+
+// Apply rate limiter and API routes
+app.use('/api', apiLimiter, apiRoutes);
 
 // Root route & health
 app.get('/', (req, res) => {
